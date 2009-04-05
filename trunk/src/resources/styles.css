@@ -1,0 +1,62 @@
+<STYLE type=text/css>
+
+body { 
+	 text-align: center; 
+	 background-color:#99CCFF;
+} 
+table {
+	font-size: 12px;
+	font-family: tahoma, helvetica;
+	border-collapse: collapse;
+}
+td {
+	border: 1pt solid #000033;
+	padding: 2px;
+}
+tr {
+	font-family: tahoma, helvetica;
+	color: #000000;
+}
+tr.buttonbar {
+	background-color: #FF4D66;
+	color: #FFFFFF;
+	border: 1pt outset #000033;
+}
+tr.head {
+	height:30px;
+}
+a {
+	text-decoration: none;
+	color: #FFFFFF;
+}
+a.clientdetails
+{
+	text-decoration: none;
+	color: #000000;
+}
+a.clientdetails:visited
+{
+	text-decoration: none;
+	color: #000000;
+}
+div.footline {
+	font-size: 12px;
+	font-family: monospace;
+	text-align: center;
+	color: #000066;
+	border: 1pt outset #000033;
+	width: 80%;
+	height: 24px;
+	vertical-align: middle;
+}
+#countDownText {
+     top: 5px;
+     left: 5px;
+     position:absolute;
+
+
+}
+img{
+    vertical-align: middle;
+}
+</STYLE>
