@@ -1,0 +1,57 @@
+﻿' 
+'	Copyright (C) 2009 SpeedCS Team
+'	http://streamboard.gmc.to
+'
+'  This Program is free software; you can redistribute it and/or modify
+'  it under the terms of the GNU General Public License as published by
+'  the Free Software Foundation; either version 2, or (at your option)
+'  any later version.
+'   
+'  This Program is distributed in the hope that it will be useful,
+'  but WITHOUT ANY WARRANTY; without even the implied warranty of
+'  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+'  GNU General Public License for more details.
+'   
+'  You should have received a copy of the GNU General Public License
+'  along with GNU Make; see the file COPYING.  If not, write to
+'  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+'  http://www.gnu.org/copyleft/gpl.html
+'
+'
+
+Imports System.Security.Cryptography
+Imports System.Text
+
+Public Class clsAESCrypt
+
+    Public Function GetMD5Array(ByVal value As String) As Byte()
+        Dim md5 As New MD5CryptoServiceProvider
+        GetMD5Array = md5.ComputeHash(UTF8Encoding.UTF8.GetBytes(value))
+        md5.Clear()
+    End Function
+
+    Public Function Decrypt(ByVal toDecrypt() As Byte, ByVal passMD5() As Byte) As Byte()
+        Dim rDel As New RijndaelManaged()
+        rDel.Key = passMD5
+        rDel.Mode = CipherMode.ECB
+        rDel.Padding = PaddingMode.Zeros
+        Using cTransform As ICryptoTransform = rDel.CreateDecryptor()
+            Dim resultArray As Byte() = cTransform.TransformFinalBlock(toDecrypt, 4, toDecrypt.Length - 4)
+            rDel.Clear()
+            Decrypt = resultArray
+        End Using
+    End Function
+
+    Public Function Encrypt(ByVal toEncrypt() As Byte, ByVal passMD5() As Byte) As Byte()
+        Dim rDel As New RijndaelManaged()
+        rDel.Key = passMD5
+        rDel.Mode = CipherMode.ECB
+        rDel.Padding = PaddingMode.Zeros
+        Using cTransform As ICryptoTransform = rDel.CreateEncryptor()
+            Dim resultArray As Byte() = cTransform.TransformFinalBlock(toEncrypt, 0, toEncrypt.Length)
+            rDel.Clear()
+            Encrypt = resultArray
+        End Using
+    End Function
+
+End Class
