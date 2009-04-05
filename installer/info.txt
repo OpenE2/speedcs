@@ -1,0 +1,5 @@
+If you continue with the installation and the program is already running, 
+the service becomes automatically stopped and restartet after the installation.
+
+Your Account for Webinterface (Administration Interface) is 'admin' with no password. 
+Please change the Password! Default Port for Webinterface is 8100 on your local System.
