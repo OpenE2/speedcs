@@ -145,9 +145,12 @@ Module ModuleMainServer
                             If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
                             If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
                             sClient.lastrequest = Now
-                            Cache.Requests.Add(ecm)
-                            strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
-
+                            If Not NotSupportedCAIDs.Contains(ecm.CAId) Then
+                                Cache.Requests.Add(ecm)
+                                strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
+                            Else
+                                strClientResult = "Rejected: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
+                            End If
                         Case clsCache.CMDType.BroadCastResponse  'Answer
                             'ecm.CMD = &H99
                             Cache.Answers.Add(ecm)
@@ -247,6 +250,10 @@ Module ModuleMainServer
                 If Not found Then Cache.Answers.Add(ecm)
                 strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
 
+                If NotSupportedCAIDs.ContainsKey(ecm.CAId) Then
+                    NotSupportedCAIDs.Remove(ecm.CAId)
+                End If
+
             Case clsCache.CMDType.EMMRequest  'Emm Zeuchs
                 logColor = ConsoleColor.Cyan
                 If Not plainRequest(1) = &H70 Then
@@ -269,6 +276,7 @@ Module ModuleMainServer
                 End If
             Case clsCache.CMDType.NotFound  'Fehler timeout/notfound whatever?!
                 strServerResult = "not found CMD44"
+                NotSupportedCAIDs.Add(ecm.CAId, Nothing)
 
             Case clsCache.CMDType.CRCError  'CRC false
                 strServerResult = "CRC of ECM wrong!"

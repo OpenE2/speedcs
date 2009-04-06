@@ -140,4 +140,6 @@ Module ModuleGlobals
 
     Public Services As New clsServices
 
+    Public NotSupportedCAIDs As New Hashtable
+
 End Module
