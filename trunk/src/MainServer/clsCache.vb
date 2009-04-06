@@ -636,7 +636,7 @@ Public Class clsCache
 
                     For Each udpserv As clsUDPIO In udpServers
                         If udpserv.serverobject.SendBroadcasts And udpserv.serverobject.Active Then
-                            If Not _ecm.CMD = CMDType.BroadCastResponse Then
+                            If _ecm.CMD = CMDType.ECMResponse Then
                                 'Broadcast Message muss nun kopiert werden,
                                 'da sie manchmal durch den RedirectAnswers.Start Thread verändert wird
                                 Dim BroadcastMsg As clsCache.clsCAMDMsg = _ecm.Clone
