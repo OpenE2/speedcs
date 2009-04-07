@@ -331,7 +331,6 @@ Public Class clsCache
             'Next
             For i As Integer = Cache.Answers.Count - 1 To 0 Step -1
                 Dim cEcm As clsCache.clsCAMDMsg = Cache.Answers.Item(i)
-                Debug.WriteLine("Cache compare Requ: " & Hex(value._CAId).PadLeft(4, CChar("0")) & ":" & Hex(value._SRVID).PadLeft(4, CChar("0")) & ":" & Hex(value.PRID).PadLeft(4, CChar("0")) & " CRC: " & value.ecmcrc & "-" & cEcm.ecmcrc)
                 If value.ecmcrc.Equals(cEcm.ecmcrc) Then
                     Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(value.usercrc)
                     UdpClientManager.SendUDPMessage(value.ReturnAsCryptedArray(c.MD5_Password), Net.IPAddress.Parse(c.SourceIp), c.SourcePort)
@@ -599,7 +598,6 @@ Public Class clsCache
                         Dim req As clsCAMDMsg = CType(Cache.Requests(idx), clsCAMDMsg)
                         If req.ecmcrc.Equals(_ecm.ecmcrc) Then
                             Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(req.usercrc)
-                            'Debug.WriteLine("req.usercrc:" & req.usercrc.ToString("X6"))
                             _ecm.usercrc = req.usercrc
                             _ecm.ClientPID = req.ClientPID
                             If Not c Is Nothing Then
@@ -626,16 +624,6 @@ Public Class clsCache
                 End SyncLock
                 Exit Sub
 
-                'For Each req As clsECM In Cache.Requests
-                'If req.CAID.Equals(_ecm.CAID) And req.idx.Equals(_ecm.idx) Then
-                'If req.CAId.Equals(_ecm.CAId) And req.unknown.Equals(_ecm.unknown) And req.ClientPID.Equals(_ecm.ClientPID) Then
-                'Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(req.usercrc)
-                'If Not c Is Nothing Then
-                'UdpClientManager.SendUDPMessage(req.ReturnAsCryptedArray(c.MD5_Password), Net.IPAddress.Parse(c.SourceIp), c.SourcePort)
-                'End If
-                'End If
-                'Next
-
             End Sub
 
             Public Sub Broadcast()
@@ -654,7 +642,7 @@ Public Class clsCache
                                                        udpserv.serverobject.Port)
                                 'ms.Close()
                                 'End Using
-                                Debug.WriteLine("Broadcast to " & udpserv.serverobject.Hostname & ":" & udpserv.serverobject.Port & " " & _ecm.SenderUCRC & "<->" & udpserv.serverobject.UCRC)
+                                Debug.WriteLine("Broadcast to " & udpserv.serverobject.Hostname & ":" & udpserv.serverobject.Port)
                             Else
                                 Debug.WriteLine("Avoid Loop " & udpserv.serverobject.Hostname)
                             End If
