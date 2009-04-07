@@ -362,13 +362,15 @@ End Class
         Public Active As Boolean = False
         Public Hostname As String = "localhost"
         Public Port As Integer = 20248
-        Private _Password As String = String.Empty
         Public SendBroadcasts As Boolean = False
         Public SendEMMs As Boolean = False
         Public SendECMs As Boolean = True
+        Public acceptedCAID As List(Of UInt16)
+        Public deniedSRVIDCAID As List(Of UInt32)
+
+        Private _Password As String = String.Empty
         Private _Username As String = String.Empty
         Private _UCRC As UInteger = 0
-
         Private _MD5_Password() As Byte
         Public ReadOnly Property MD5_Password() As Byte()
             Get

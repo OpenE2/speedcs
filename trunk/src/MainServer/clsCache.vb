@@ -46,6 +46,7 @@ Public Class clsCache
         Public _OriginalLength As Integer
         Public OriginalRaw As Byte()
         Public IncomingTimeStamp As Long = Environment.TickCount
+        Public srvidcaid As UInt32
 
         Public Property ecmcrc() As UInt32
             Get
@@ -155,6 +156,9 @@ Public Class clsCache
                 _SRVID = CUShort(Math.Floor(_SRVID / 256) + 256 * (_SRVID And 255)) 'Convert to Little Endian
                 _CAId = BitConverter.ToUInt16(plainRequest, 14 - 4)
                 _CAId = CUShort(Math.Floor(_CAId / 256) + 256 * (_CAId And 255)) 'Convert to Little Endian
+                srvidcaid = BitConverter.ToUInt32(plainRequest, 12 - 4)
+                srvidcaid = CUInt(Math.Floor(srvidcaid / 65536) + 65536 * (srvidcaid And 65535))
+
                 Using ms As New IO.MemoryStream(plainRequest, 16 - 4, 4) 'Convert to Little Endian
                     Dim PRID_Bytes() As Byte = ms.ToArray
                     Array.Reverse(PRID_Bytes)
@@ -287,6 +291,7 @@ Public Class clsCache
             r.usercrc = usercrc
             r._OriginalLength = _OriginalLength
             r.IncomingTimeStamp = IncomingTimeStamp
+            r.srvidcaid = srvidcaid
             Return r
         End Function
 
@@ -412,10 +417,11 @@ Public Class clsCache
                 For Each udpserv As clsUDPIO In udpServers
                     Try
                         If udpserv.serverobject.SendECMs Then
-                            Debug.WriteLine("Send to " & udpserv.serverobject.Hostname & ":" & udpserv.serverobject.Port & " with " & udpserv.serverobject.Username & ":" & udpserv.serverobject.Password)
-                            _ecm.usercrc = udpserv.serverobject.UCRC
-                            'DebugOutputBytes(BitConverter.GetBytes(udpserv.serverobject.UCRC), "Server UCRC:")
-                            udpserv.SendUDPMessage(_ecm.ReturnAsCryptedArray(udpserv.serverobject.MD5_Password), Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
+                            If Not udpserv.serverobject.deniedSRVIDCAID.Contains(_ecm.srvidcaid) Then
+                                Debug.WriteLine("Send to " & udpserv.serverobject.Hostname & ":" & udpserv.serverobject.Port & " with " & udpserv.serverobject.Username & ":" & udpserv.serverobject.Password)
+                                _ecm.usercrc = udpserv.serverobject.UCRC
+                                udpserv.SendUDPMessage(_ecm.ReturnAsCryptedArray(udpserv.serverobject.MD5_Password), Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
+                            End If
                         End If
                     Catch ex As Exception
                         Output("Send2Server:" & ex.Message & vbCrLf & ex.StackTrace, LogDestination.file)
@@ -427,6 +433,7 @@ Public Class clsCache
         End Class
 
     End Class
+
     Private _Requests As New clsRequests
 
     Public Property Requests() As clsRequests

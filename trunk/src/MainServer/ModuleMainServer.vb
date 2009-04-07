@@ -145,12 +145,12 @@ Module ModuleMainServer
                             If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
                             If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
                             sClient.lastrequest = Now
-                            If Not NotSupportedCAIDs.Contains(ecm.CAId) Then
-                                Cache.Requests.Add(ecm)
-                                strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
-                            Else
-                                strClientResult = "Rejected: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
-                            End If
+                            'If Not NotSupportedCAIDs.Contains(ecm.CAId) Then
+                            Cache.Requests.Add(ecm)
+                            strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
+                            'Else
+                            'strClientResult = "Rejected: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
+                            'End If
                         Case clsCache.CMDType.BroadCastResponse  'Answer
                             'ecm.CMD = &H99
                             Cache.Answers.Add(ecm)
@@ -196,18 +196,18 @@ Module ModuleMainServer
                 strClientResult = "Illegal access or Account locked"
             End If
 
-                ' Log Output
-                Dim strLog As String = ""
-                'strLog &= message.ucrcInt.ToString("X4") & " "
-                strLog &= strClientResult
+            ' Log Output
+            Dim strLog As String = ""
+            'strLog &= message.ucrcInt.ToString("X4") & " "
+            strLog &= strClientResult
 
-                Dim adressData As String = message.sourceIP & ":" & message.sourcePort
-                adressData = adressData.PadRight(22)
+            Dim adressData As String = message.sourceIP & ":" & message.sourcePort
+            adressData = adressData.PadRight(22)
 
-                Output("C " & adressData & _
-                                 strLog, LogDestination.none, _
-                                                    LogSeverity.info, _
-                                                    logColor)
+            Output("C " & adressData & _
+                             strLog, LogDestination.none, _
+                                                LogSeverity.info, _
+                                                logColor)
 
         Catch ex As Exception
             Output(ex.Message & vbCrLf & ex.StackTrace, LogDestination.file)
@@ -250,9 +250,6 @@ Module ModuleMainServer
                 If Not found Then Cache.Answers.Add(ecm)
                 strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
 
-                If NotSupportedCAIDs.ContainsKey(ecm.CAId) Then
-                    NotSupportedCAIDs.Remove(ecm.CAId)
-                End If
 
             Case clsCache.CMDType.EMMRequest  'Emm Zeuchs
                 logColor = ConsoleColor.Cyan
@@ -276,8 +273,9 @@ Module ModuleMainServer
                 End If
             Case clsCache.CMDType.NotFound  'Fehler timeout/notfound whatever?!
                 strServerResult = "not found CMD44"
-                NotSupportedCAIDs.Add(ecm.CAId, Nothing)
-
+                If Not mSender.serverobject.deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
+                    mSender.serverobject.deniedSRVIDCAID.Add(ecm.srvidcaid)
+                End If
             Case clsCache.CMDType.CRCError  'CRC false
                 strServerResult = "CRC of ECM wrong!"
 
