@@ -216,7 +216,7 @@ Module ModuleMainServer
     End Sub
 
     Private Sub ServerIncoming(ByVal sender As Object, ByVal message As clsUDPIO.structUdpMessage)
-        Debug.WriteLine("ServerIncoming")
+        'Debug.WriteLine("ServerIncoming")
         Dim mSender As clsUDPIO = TryCast(sender, clsUDPIO)
         Dim plainRequest() As Byte = Nothing
         Dim strServerResult As String = "undefined"
@@ -276,6 +276,7 @@ Module ModuleMainServer
                 If Not mSender.serverobject.deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
                     mSender.serverobject.deniedSRVIDCAID.Add(ecm.srvidcaid)
                 End If
+                DebugOutputBytes(plainRequest, "CMD44: ")
             Case clsCache.CMDType.CRCError  'CRC false
                 strServerResult = "CRC of ECM wrong!"
 
