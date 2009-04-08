@@ -56,6 +56,7 @@
     <Compile Include="classes\clsCRC32.vb" />
     <Compile Include="classes\clsCrypt.vb" />
     <Compile Include="classes\clsSerial.vb" />
+    <Compile Include="classes\clsServerSettings.vb" />
     <Compile Include="classes\clsServices.vb" />
     <Compile Include="classes\clsSettings.vb" />
     <Compile Include="MainServer\AsynchronousClient.vb" />

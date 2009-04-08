@@ -41,7 +41,7 @@ Public Class clsCRC32
         Return sbEncoded.ToString()
     End Function
     'Public Shared Function CRC32OfString(ByVal original As Byte()) As String
-    Public Shared Function CRC32OfString(ByVal original As Byte()) As Byte()
+    Public Shared Function CRC32OfByte(ByVal original As Byte()) As Byte()
         'Dim original As Byte() 
         Dim encoded As Byte()
 
