@@ -329,16 +329,16 @@ Public Class clsCache
             '    End If
             'Loop
             'Next
-            For i As Integer = Cache.Answers.Count - 1 To 0 Step -1
-                Dim cEcm As clsCache.clsCAMDMsg = Cache.Answers.Item(i)
-                If value.ecmcrc.Equals(cEcm.ecmcrc) Then
-                    Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(value.usercrc)
-                    UdpClientManager.SendUDPMessage(value.ReturnAsCryptedArray(c.MD5_Password), Net.IPAddress.Parse(c.SourceIp), c.SourcePort)
-                    Debug.WriteLine("Direct Cache access -> Sent")
-                    ECMFoundInCache = True
-                    Exit For
-                End If
-            Next
+            'For i As Integer = Cache.Answers.Count - 1 To 0 Step -1
+            '    Dim cEcm As clsCache.clsCAMDMsg = Cache.Answers.Item(i)
+            '    If value.ecmcrc.Equals(cEcm.ecmcrc) Then
+            '        Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(value.usercrc)
+            '        UdpClientManager.SendUDPMessage(value.ReturnAsCryptedArray(c.MD5_Password), Net.IPAddress.Parse(c.SourceIp), c.SourcePort)
+            '        Debug.WriteLine("Direct Cache access -> Sent")
+            '        ECMFoundInCache = True
+            '        Exit For
+            '    End If
+            'Next
 
             If Not ECMFoundInCache Then
                 List.Add(value)
