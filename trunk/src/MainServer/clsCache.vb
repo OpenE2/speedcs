@@ -530,7 +530,7 @@ Public Class clsCache
             If Not isBroadcast Then
                 Dim b As New Threading.Thread(AddressOf r.Broadcast)
                 b.IsBackground = True
-                t.Priority = Threading.ThreadPriority.BelowNormal
+                b.Priority = Threading.ThreadPriority.BelowNormal
                 b.Start()
             End If
 
@@ -543,7 +543,7 @@ Public Class clsCache
                 Do While idx < List.Count
                     Dim c As clsCAMDMsg = TryCast(List(idx), clsCAMDMsg)
                     If Not c Is Nothing Then
-                        If DateDiff(DateInterval.Second, c.reqtime, Now) > 10 Then
+                        If DateDiff(DateInterval.Second, c.reqtime, Now) > 5 Then
                             List.Remove(c)
                         Else
                             idx += 1
@@ -640,8 +640,7 @@ Public Class clsCache
                                 udpserv.SendUDPMessage(BroadcastMsg.ReturnAsCryptedArray(udpserv.serverobject.MD5_Password), _
                                                        Net.IPAddress.Parse(udpserv.serverobject.IP), _
                                                        udpserv.serverobject.Port)
-                                'ms.Close()
-                                'End Using
+                         
                                 Debug.WriteLine("Broadcast to " & udpserv.serverobject.Hostname & ":" & udpserv.serverobject.Port)
                             Else
                                 Debug.WriteLine("Avoid Loop " & udpserv.serverobject.Hostname)
