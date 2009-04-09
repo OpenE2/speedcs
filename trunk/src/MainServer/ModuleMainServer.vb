@@ -149,7 +149,7 @@ Module ModuleMainServer
                             sClient.lastrequest = Now
                             Cache.Requests.Add(ecm)
                             strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
-                            WriteEcmToFile(plainRequest, "Request: ")
+
 
                         Case clsCache.CMDType.BroadCastResponse  'Answer
                             'ecm.CMD = &H99
@@ -169,19 +169,27 @@ Module ModuleMainServer
                         Case clsCache.CMDType.EMMResponse
                             strClientResult = "Emm Client Response"
                             logColor = ConsoleColor.Cyan
-                            For Each udpserv As clsUDPIO In udpServers
-                                If sClient.AUServer = udpserv.serverobject.IP And udpserv.serverobject.SendEMMs Then
-                                    Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(udpserv.serverobject.Username))
-                                    Array.Reverse(ucrcbytes)
-                                    Using ms As New MemoryStream
-                                        ms.Write(ucrcbytes, 0, 4)
-                                        Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, udpserv.serverobject.MD5_Password)
-                                        ms.Write(eArr, 0, eArr.Length)
-                                        udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(udpserv.serverobject.IP)), udpserv.serverobject.Port)
-                                    End Using
-                                End If
-                            Next
 
+                            Dim emmCRC As UInt32 = BitConverter.ToUInt32(plainRequest, 4)
+                            If Not emmStack.ContainsKey(emmCRC) Then emmStack.Add(emmCRC, plainRequest)
+
+                            strClientResult = "Emm Client Response. Stack: " & emmStack.Count
+                            'For Each udpserv As clsUDPIO In udpServers
+                            '    If sClient.AUServer = udpserv.serverobject.IP And udpserv.serverobject.SendEMMs Then
+                            '        Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(udpserv.serverobject.Username))
+                            '        Array.Reverse(ucrcbytes)
+                            '        Using ms As New MemoryStream
+                            '            ms.Write(ucrcbytes, 0, 4)
+                            '            Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, udpserv.serverobject.MD5_Password)
+                            '            ms.Write(eArr, 0, eArr.Length)
+                            '            udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(udpserv.serverobject.IP)), udpserv.serverobject.Port)
+                            '        End Using
+                            '    End If
+                            'Next
+
+
+
+                            'WriteEcmToFile(plainRequest, "CMD6: ")
                         Case Else
                             strClientResult = "Command " & Hex(ecm.CMD)
 
@@ -249,7 +257,7 @@ Module ModuleMainServer
 
                     If Not found Then Cache.Answers.Add(ecm)
                     strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
-                    WriteEcmToFile(plainRequest, "Answer : ")
+
 
                 Case clsCache.CMDType.EMMRequest  'Emm Zeuchs
                     logColor = ConsoleColor.Cyan
@@ -258,19 +266,24 @@ Module ModuleMainServer
                         Dim c As clsSettingsClients.clsClient
                         For Each c In CfgClients.Clients
                             If c.AUServer = message.sourceIP And c.active Then
-                                Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(c.Username))
-                                Array.Reverse(ucrcbytes)
-                                Using ms As New MemoryStream
-                                    ms.Write(ucrcbytes, 0, 4)
-                                    Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, c.MD5_Password)
-                                    ms.Write(eArr, 0, eArr.Length)
-                                    UdpClientManager.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
-                                End Using
+                                If DateDiff(DateInterval.Minute, c.AUisActiveSince, Date.Now) > 30 Then
+                                    Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(c.Username))
+                                    Array.Reverse(ucrcbytes)
+                                    Using ms As New MemoryStream
+                                        ms.Write(ucrcbytes, 0, 4)
+                                        Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, c.MD5_Password)
+                                        ms.Write(eArr, 0, eArr.Length)
+                                        UdpClientManager.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
+                                        c.AUisActiveSince = Date.Now
+                                    End Using
+                                End If
                             End If
                         Next
+                        'WriteEcmToFile(plainRequest, "CMD5: ")
                     Else
                         strServerResult = "EMM Request CMD05 suppressed "
                     End If
+
                 Case clsCache.CMDType.NotFound  'Fehler timeout/notfound whatever?!
                     strServerResult = "not found CMD44"
                     If Not mSender.serverobject.deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
