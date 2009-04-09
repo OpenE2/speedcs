@@ -154,6 +154,6 @@ Module ModuleGlobals
 
     Public Services As New clsServices
 
-    Public emmStack As New Hashtable
+    Public emmStack As New SortedList(Of UInt32, Byte())
 
 End Module

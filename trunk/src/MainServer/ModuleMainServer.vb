@@ -25,6 +25,7 @@ Imports System.IO
 
 Module ModuleMainServer
     'Private swatch As New Stopwatch
+    Private WithEvents emmSender As New Timers.Timer(4000)
 
 #Region "udpServerManagers"
 
@@ -149,7 +150,7 @@ Module ModuleMainServer
                             sClient.lastrequest = Now
                             Cache.Requests.Add(ecm)
                             strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
-
+                            If Not emmSender.Enabled Then emmSender.Start()
 
                         Case clsCache.CMDType.BroadCastResponse  'Answer
                             'ecm.CMD = &H99
@@ -171,7 +172,10 @@ Module ModuleMainServer
                             logColor = ConsoleColor.Cyan
 
                             Dim emmCRC As UInt32 = BitConverter.ToUInt32(plainRequest, 4)
-                            If Not emmStack.ContainsKey(emmCRC) Then emmStack.Add(emmCRC, plainRequest)
+
+                            SyncLock emmSender
+                                If Not emmStack.ContainsKey(emmCRC) Then emmStack.Add(emmCRC, plainRequest)
+                            End SyncLock
 
                             strClientResult = "Emm Client Response. Stack: " & emmStack.Count
                             'For Each udpserv As clsUDPIO In udpServers
@@ -314,6 +318,41 @@ Module ModuleMainServer
         End Try
     End Sub
 
+
+    Private Sub emmSender_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles emmSender.Elapsed
+        Debug.WriteLine("Emm Timer")
+
+        SyncLock emmStack
+            If emmStack.Count > 0 Then
+                Dim emm() As Byte = TryCast(emmStack(emmStack.Keys(0)), Byte())
+                If Not emm Is Nothing Then
+                    Debug.WriteLine("Emm Stack full")
+                    For Each udpserv As clsUDPIO In udpServers
+                        If udpserv.serverobject.SendEMMs Then
+                            Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(udpserv.serverobject.Username))
+                            Array.Reverse(ucrcbytes)
+                            Using ms As New MemoryStream
+                                ms.Write(ucrcbytes, 0, 4)
+                                Dim eArr() As Byte = AESCrypt.Encrypt(emm, udpserv.serverobject.MD5_Password)
+                                ms.Write(eArr, 0, eArr.Length)
+                                udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(udpserv.serverobject.IP)), udpserv.serverobject.Port)
+                            End Using
+                        End If
+                    Next
+                    emmStack.RemoveAt(0)
+                Else
+                    Debug.WriteLine("Emm is nothing")
+                End If
+            Else
+                Debug.WriteLine("Emm Stack empty")
+            End If
+        End SyncLock
+        emmSender.Stop()
+    End Sub
+
+
+
+
 #Region "ErrorHandler"
 
     Private Sub ServerIncomingError(ByVal sender As Object, ByVal message As String)
@@ -339,4 +378,5 @@ Module ModuleMainServer
     End Sub
 
 #End Region
+
 End Module
