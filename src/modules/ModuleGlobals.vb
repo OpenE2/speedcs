@@ -127,13 +127,13 @@ Module ModuleGlobals
     End Sub
 
     Public Sub WriteEcmToFile(ByVal b As Byte(), Optional ByVal prefix As String = "")
-        'Dim out As String = String.Empty
-        'For i As Integer = 0 To b.Length - 1
-        '    out &= b(i).ToString("X2") & " "
-        'Next
-        'Using fw As New StreamWriter(ECMfilename, True)
-        '    fw.WriteLine(Date.Now.ToString & " " & prefix & out)
-        'End Using
+        Dim out As String = String.Empty
+        For i As Integer = 0 To b.Length - 1
+            out &= b(i).ToString("X2") & " "
+        Next
+        Using fw As New StreamWriter(ECMfilename, True)
+            fw.WriteLine(Date.Now.ToString & " " & prefix & out)
+        End Using
     End Sub
 
     Public CfgGlobals As New clsSettingsGlobal
@@ -153,5 +153,7 @@ Module ModuleGlobals
     Public AESCrypt As New clsAESCrypt
 
     Public Services As New clsServices
+
+    Public emmStack As New Hashtable
 
 End Module

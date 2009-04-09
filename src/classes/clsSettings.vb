@@ -166,6 +166,7 @@ End Class
         Public payeduntil As Date = Now
         Public lastrequest As Date = Now
         Public AUServer As String = String.Empty
+        Public AUisActiveSince As Date
         Private _ucrc As UInteger
         Public ReadOnly Property ucrc() As UInteger
             Get
