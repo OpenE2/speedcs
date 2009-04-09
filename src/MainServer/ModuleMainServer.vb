@@ -320,13 +320,13 @@ Module ModuleMainServer
 
 
     Private Sub emmSender_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles emmSender.Elapsed
-        Debug.WriteLine("Emm Timer")
+        'Debug.WriteLine("Emm Timer")
 
         SyncLock emmStack
             If emmStack.Count > 0 Then
                 Dim emm() As Byte = TryCast(emmStack(emmStack.Keys(0)), Byte())
                 If Not emm Is Nothing Then
-                    Debug.WriteLine("Emm Stack full")
+                    'Debug.WriteLine("Emm Stack full")
                     For Each udpserv As clsUDPIO In udpServers
                         If udpserv.serverobject.SendEMMs Then
                             Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(udpserv.serverobject.Username))
@@ -341,10 +341,10 @@ Module ModuleMainServer
                     Next
                     emmStack.RemoveAt(0)
                 Else
-                    Debug.WriteLine("Emm is nothing")
+                    'Debug.WriteLine("Emm is nothing")
                 End If
             Else
-                Debug.WriteLine("Emm Stack empty")
+                'Debug.WriteLine("Emm Stack empty")
             End If
         End SyncLock
         emmSender.Stop()
