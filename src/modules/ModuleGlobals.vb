@@ -21,6 +21,7 @@
 
 Imports System.Reflection
 Imports Microsoft.Win32
+Imports System.IO
 
 Module ModuleGlobals
 
@@ -114,12 +115,25 @@ Module ModuleGlobals
 
 #End Region
 
+    Private ECMfilepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
+    Private ECMfilename As String = Path.Combine(ECMfilepath, "ECMlog.txt")
+
     Public Sub DebugOutputBytes(ByVal b As Byte(), Optional ByVal prefix As String = "")
         Dim out As String = String.Empty
         For i As Integer = 0 To b.Length - 1
             out &= b(i).ToString("X2") & " "
         Next
         Debug.WriteLine(prefix & out)
+    End Sub
+
+    Public Sub WriteEcmToFile(ByVal b As Byte(), Optional ByVal prefix As String = "")
+        'Dim out As String = String.Empty
+        'For i As Integer = 0 To b.Length - 1
+        '    out &= b(i).ToString("X2") & " "
+        'Next
+        'Using fw As New StreamWriter(ECMfilename, True)
+        '    fw.WriteLine(Date.Now.ToString & " " & prefix & out)
+        'End Using
     End Sub
 
     Public CfgGlobals As New clsSettingsGlobal

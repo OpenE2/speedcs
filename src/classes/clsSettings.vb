@@ -26,8 +26,8 @@ Public Class clsSettingsGlobal
 
 #Region "Loading and Saving"
 
-    Private filepath As String = System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) & "\" & Application.ProductName & "\"
-    Private filename As String = filepath & "config.xml"
+    Private filepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
+    Private filename As String = Path.Combine(filepath, "config.xml")
 
     Public Function Load() As Boolean
 

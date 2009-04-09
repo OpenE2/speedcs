@@ -149,6 +149,7 @@ Module ModuleMainServer
                             sClient.lastrequest = Now
                             Cache.Requests.Add(ecm)
                             strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
+                            WriteEcmToFile(plainRequest, "Request: ")
 
                         Case clsCache.CMDType.BroadCastResponse  'Answer
                             'ecm.CMD = &H99
@@ -248,7 +249,7 @@ Module ModuleMainServer
 
                     If Not found Then Cache.Answers.Add(ecm)
                     strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
-
+                    WriteEcmToFile(plainRequest, "Answer : ")
 
                 Case clsCache.CMDType.EMMRequest  'Emm Zeuchs
                     logColor = ConsoleColor.Cyan
