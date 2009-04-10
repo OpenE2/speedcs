@@ -87,9 +87,17 @@ Public Class clsSettingsGlobal
 
 #End Region
 
-#Region "CAMD3 Settings"
+#Region "cs357x Settings"
 
-    Public ClientPort As Integer = 20248
+    Public cs357xUse As Boolean = True
+    Public cs357xPort As Integer = 20248
+
+#End Region
+
+#Region "NEWCAMD Settings"
+
+    Public NewCamdUse As Boolean = True
+    Public NewCamdPort As Integer = 20247
 
 #End Region
 

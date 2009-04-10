@@ -66,6 +66,8 @@ Module ModuleMain
 
             StartUDP()
 
+            NewCamdServer.StartServer()
+
             Output("Press ESC to quit")
             While True
                 Select Case Console.ReadKey.Key
@@ -80,6 +82,8 @@ Module ModuleMain
             'System.Threading.Thread.Sleep(100)
             'Output("Wait")
             'End While
+
+            NewCamdServer.StopServer()
 
             StopUDP()
 
