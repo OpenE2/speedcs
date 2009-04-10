@@ -1030,7 +1030,7 @@ Public Class Server
         sMessage.Append("</select>")
         sMessage.Append("</td></tr>")
 
-        sMessage.Append("<tr><th>Listenport</th><td><input type='text' name='cs357xport' value='" & CfgGlobals.cs357xPort & "'></td></tr>")
+        sMessage.Append("<tr><th>Listenport</th><td><input size=4 type='text' name='cs357xport' value='" & CfgGlobals.cs357xPort & "'></td></tr>")
 
         sMessage.Append("<tr class='head'><th colspan=2>NewCamd Protocol</td></tr>")
 
@@ -1045,11 +1045,12 @@ Public Class Server
         sMessage.Append("</select>")
         sMessage.Append("</td></tr>")
 
-        sMessage.Append("<tr><th>Listenport</th><td><input type='text' name='newcamdport' value='" & CfgGlobals.NewCamdPort & "'></td></tr>")
+        sMessage.Append("<tr><th>Listenport</th><td><input size=4 type='text' name='newcamdport' value='" & CfgGlobals.NewCamdPort & "'></td></tr>")
+        sMessage.Append("<tr><th>Key</th><td><input size=28 type='text' name='newcamdkey' value='" & CfgGlobals.NewCamdKey & "'></td></tr>")
         'TODO: DES Key should be here too
 
         sMessage.Append("<tr class='head'><th colspan=2>Webinterface</td></tr>")
-        sMessage.Append("<tr><th>TCP Port</th><td><input type='text' name='adminport' value='" & CfgGlobals.AdminPort & "'></td></tr>")
+        sMessage.Append("<tr><th>TCP Port</th><td><input size=4 type='text' name='adminport' value='" & CfgGlobals.AdminPort & "'></td></tr>")
         sMessage.Append("<tr><th>Username</th><td><input type='text' name='adminusername' value='" & CfgGlobals.AdminUsername & "'></td></tr>")
         sMessage.Append("<tr><th>Password</th><td><input type='password' name='adminpassword' value='" & CfgGlobals.AdminPassword & "'></td></tr>")
         sMessage.Append("<tr class='head'><th colspan=2>Syslog</td></tr>")
@@ -1065,7 +1066,7 @@ Public Class Server
         sMessage.Append("</td></tr>")
 
         sMessage.Append("<tr><th>Hostname</th><td><input type='text' name='sysloghostname' value='" & CfgGlobals.SysLogHostname & "'></td></tr>")
-        sMessage.Append("<tr><th>UDP-Port</th><td><input type='text' name='syslogport' value='" & CfgGlobals.SysLogPort & "'></td></tr>")
+        sMessage.Append("<tr><th>UDP-Port</th><td><input size=4 type='text' name='syslogport' value='" & CfgGlobals.SysLogPort & "'></td></tr>")
 
         sMessage.Append("<input type='hidden' name='check' value='1'>")
         sMessage.Append("<tr><th colspan=2><input type='submit' value='Speichern'></th></tr>")
