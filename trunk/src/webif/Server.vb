@@ -906,7 +906,7 @@ Public Class Server
         sMessage.Append("<tr><th>.NET Version</th><td>" & Environment.Version.ToString & "</td></tr>")
         sMessage.Append("<tr><th>Programversion</th><td>" & Application.ProductName & " " & Application.ProductVersion & "</td></tr>")
         sMessage.Append("<tr><th>RAM usage</th><td>" & Environment.WorkingSet / 1024 & "KB</td></tr>")
-        sMessage.Append("<tr><th>Listen on Port</th><td>" & CfgGlobals.ClientPort & "</td></tr>")
+        sMessage.Append("<tr><th>Listen on Port</th><td>" & CfgGlobals.cs357xPort & "</td></tr>")
         sMessage.Append("<tr><th>Working Directory</th><td>" & CurrentDirectory & "</td></tr>")
         sMessage.Append("<tr><th>Config Directory</th><td>" & System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) & "\" & Application.ProductName & "\" & "</td></tr>")
         sMessage.Append("<tr><th>Domain</th><td>" & Environment.UserDomainName & "</td></tr>")
@@ -934,13 +934,36 @@ Public Class Server
                         Dim savechanges As Boolean = False
                         Dim restartsyslog As Boolean = False
                         Select Case l(0)
-                            Case "clientport"
+                            Case "cs357xuse"
+                                If CfgGlobals.cs357xUse <> CBool(Trim(l(1))) Then
+                                    UdpClientManager.CloseUDPConnection()
+                                    CfgGlobals.cs357xUse = CBool(Trim(l(1)))
+                                    UdpClientManager.OpenUDPConnection()
+                                    savechanges = True
+                                End If
+                            Case "cs357xport"
                                 If CInt(l(1)) < 65535 Then
-                                    If CfgGlobals.ClientPort <> CInt(l(1)) Then
+                                    If CfgGlobals.cs357xPort <> CInt(l(1)) Then
                                         UdpClientManager.CloseUDPConnection()
-                                        CfgGlobals.ClientPort = CInt(l(1))
-                                        UdpClientManager.Port = CfgGlobals.ClientPort
+                                        CfgGlobals.cs357xPort = CInt(l(1))
+                                        UdpClientManager.Port = CfgGlobals.cs357xPort
                                         UdpClientManager.OpenUDPConnection()
+                                        savechanges = True
+                                    End If
+                                End If
+                            Case "newcamduse"
+                                If CfgGlobals.NewCamdUse <> CBool(Trim(l(1))) Then
+                                    NewCamdServer.StopServer()
+                                    CfgGlobals.NewCamdUse = CBool(Trim(l(1)))
+                                    NewCamdServer.StartServer()
+                                    savechanges = True
+                                End If
+                            Case "newcamdport"
+                                If CInt(l(1)) < 65535 Then
+                                    If CfgGlobals.NewCamdPort <> CInt(l(1)) Then
+                                        NewCamdServer.StopServer()
+                                        CfgGlobals.NewCamdPort = CInt(l(1))
+                                        NewCamdServer.StartServer()
                                         savechanges = True
                                     End If
                                 End If
@@ -994,8 +1017,37 @@ Public Class Server
         sMessage.Append(ButtonBar())
         sMessage.Append("<form action='settings.html' method='POST'>")
         sMessage.Append("<table border=1>")
-        sMessage.Append("<tr class='head'><th colspan=2>Camd3 Protocol</td></tr>")
-        sMessage.Append("<tr><th>UDP Listenport</th><td><input type='text' name='clientport' value='" & CfgGlobals.ClientPort & "'></td></tr>")
+        sMessage.Append("<tr class='head'><th colspan=2>cs357x Protocol</td></tr>")
+
+        sMessage.Append("<tr><th>enabled</th><td>")
+        sMessage.Append("<select name='cs357xuse'>")
+        sMessage.Append("<option ")
+        If CfgGlobals.cs357xUse Then sMessage.Append("selected ")
+        sMessage.Append("value='1'>Yes</option>")
+        sMessage.Append("<option ")
+        If Not CfgGlobals.cs357xUse Then sMessage.Append("selected ")
+        sMessage.Append("value='0'>No</option>")
+        sMessage.Append("</select>")
+        sMessage.Append("</td></tr>")
+
+        sMessage.Append("<tr><th>Listenport</th><td><input type='text' name='cs357xport' value='" & CfgGlobals.cs357xPort & "'></td></tr>")
+
+        sMessage.Append("<tr class='head'><th colspan=2>NewCamd Protocol</td></tr>")
+
+        sMessage.Append("<tr><th>enabled</th><td>")
+        sMessage.Append("<select name='newcamduse'>")
+        sMessage.Append("<option ")
+        If CfgGlobals.NewCamdUse Then sMessage.Append("selected ")
+        sMessage.Append("value='1'>Yes</option>")
+        sMessage.Append("<option ")
+        If Not CfgGlobals.NewCamdUse Then sMessage.Append("selected ")
+        sMessage.Append("value='0'>No</option>")
+        sMessage.Append("</select>")
+        sMessage.Append("</td></tr>")
+
+        sMessage.Append("<tr><th>Listenport</th><td><input type='text' name='newcamdport' value='" & CfgGlobals.NewCamdPort & "'></td></tr>")
+
+
         sMessage.Append("<tr class='head'><th colspan=2>Webinterface</td></tr>")
         sMessage.Append("<tr><th>TCP Port</th><td><input type='text' name='adminport' value='" & CfgGlobals.AdminPort & "'></td></tr>")
         sMessage.Append("<tr><th>Username</th><td><input type='text' name='adminusername' value='" & CfgGlobals.AdminUsername & "'></td></tr>")

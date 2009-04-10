@@ -18,7 +18,66 @@
 '  http://www.gnu.org/copyleft/gpl.html
 '
 '
+Imports System.Net
+Imports System.Net.Sockets
 
 Public Class clsTCPIO
+
+#Region "Start/Stop/Restart Server"
+
+    Public Sub StartServer()
+
+        If CfgGlobals.NewCamdUse Then
+            Listen()
+        Else
+            Output("NewCamd Server disabled")
+        End If
+
+    End Sub
+
+    Public Sub StopServer()
+
+    End Sub
+
+    Public Sub RestartServer()
+
+        StopServer()
+
+        StartServer()
+
+    End Sub
+
+#End Region
+
+    Private Sub Listen()
+
+        Dim s As New Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+        Dim lhe As IPHostEntry = System.Net.Dns.GetHostEntry(Environment.MachineName)
+        Dim adruse As IPAddress = Net.IPAddress.Any
+        If adruse Is Nothing Then adruse = lhe.AddressList(0)
+        Dim lep As IPEndPoint = New IPEndPoint(adruse, CfgGlobals.NewCamdPort)
+        s.Bind(lep)
+        Output("NewCamd Server listen on " & adruse.ToString & ":" & CfgGlobals.NewCamdPort)
+
+        s.Listen(1000)
+        s.BeginAccept(New AsyncCallback(AddressOf Accept), s)
+
+    End Sub
+
+    Private Sub Accept(ByVal ar As IAsyncResult)
+
+        Debug.WriteLine("Accept")
+        Dim s As Socket = CType(ar.AsyncState, Socket)
+        Dim ss As Socket
+        Try
+            ss = s.EndAccept(ar)
+            s.BeginAccept(New AsyncCallback(AddressOf Accept), s)
+            'ss.BeginReceive(state.buffer, 0, state.bufferSize, SocketFlags.None, New AsyncCallback(AddressOf recieve), state)
+        Catch e As Exception
+            'RaiseEvent onError(e.ToString())
+        End Try
+        'RaiseEvent onAccept(state)
+
+    End Sub
 
 End Class

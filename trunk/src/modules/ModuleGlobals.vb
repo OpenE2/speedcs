@@ -156,4 +156,6 @@ Module ModuleGlobals
 
     Public emmStack As New SortedList(Of UInt32, Byte())
 
+    Public NewCamdServer As New clsTCPIO
+
 End Module

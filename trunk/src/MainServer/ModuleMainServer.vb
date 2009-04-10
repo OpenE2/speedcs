@@ -71,13 +71,16 @@ Module ModuleMainServer
 
     Public Sub StartUDP()
 
-        'Empfangsport für clients
-        UdpClientManager = New clsUDPIO(CfgGlobals.ClientPort)
-        AddHandler UdpClientManager.UdpMessageReceived, AddressOf ClientIncoming
-        AddHandler UdpClientManager.UdpError, AddressOf ClientIncomingError
-
-        UdpClientManager.OpenUDPConnection()
-        Output("UDP Server listen on " & UdpClientManager.LocalIP.ToString & ":" & UdpClientManager.Port)
+        If CfgGlobals.cs357xUse Then
+            'Empfangsport für clients
+            UdpClientManager = New clsUDPIO(CfgGlobals.cs357xPort)
+            AddHandler UdpClientManager.UdpMessageReceived, AddressOf ClientIncoming
+            AddHandler UdpClientManager.UdpError, AddressOf ClientIncomingError
+            UdpClientManager.OpenUDPConnection()
+            Output("cs357x Server listen on " & UdpClientManager.LocalIP.ToString & ":" & UdpClientManager.Port)
+        Else
+            Output("cs357x Server disabled")
+        End If
 
         'CardServer Port
         For Each CardServer As SpeedCS.clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
@@ -102,7 +105,10 @@ Module ModuleMainServer
     Public Sub StopUDP()
 
         Try
-            UdpClientManager.CloseUDPConnection()
+            If Not UdpClientManager Is Nothing Then
+                UdpClientManager.CloseUDPConnection()
+            End If
+
             For Each s As clsUDPIO In udpServers
                 RemoveHandler s.UdpError, AddressOf ServerIncomingError
                 RemoveHandler s.UdpMessageReceived, AddressOf ServerIncoming
