@@ -307,67 +307,29 @@ Public Class clsCache
         Inherits CollectionBase
 
         Public Sub Add(ByVal value As clsCAMDMsg)
-            Dim SameRequestInQueue As Boolean = False
-            'For Each e As clsECM In List
-            'If e.ecmcrc.Equals(value.ecmcrc) And e.usercrc.Equals(value.ecmcrc) Then
-            'SameRequestInQueue = True
-            'Debug.WriteLine("Same Request in Queue")
-            'Exit For
-            'End If
-            'Next
-
-            'Hack: Client guckt sofort in cache
-            Dim idx As Integer
-            Dim ECMFoundInCache As Boolean = False
-            'Do While idx < Cache.Answers.Count
-            '    'For i As Integer = Cache.Answers.Count - 1 To 0 Step -1
-            '    Dim cEcm As clsCache.clsCAMDMsg = Cache.Answers.Item(idx)
-            '    If value.ecmcrc.Equals(cEcm.ecmcrc) Then
-            '        Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(value.usercrc)
-            '        UdpClientManager.SendUDPMessage(value.ReturnAsCryptedArray(c.MD5_Password), Net.IPAddress.Parse(c.SourceIp), c.SourcePort)
-            '        Debug.WriteLine("Direct Cache access -> Sent")
-            '        ECMFoundInCache = True
-            '        Exit Do
-            '    Else
-            '        idx += 1
-            '    End If
-            'Loop
-            'Next
-            'For i As Integer = Cache.Answers.Count - 1 To 0 Step -1
-            '    Dim cEcm As clsCache.clsCAMDMsg = Cache.Answers.Item(i)
-            '    If value.ecmcrc.Equals(cEcm.ecmcrc) Then
-            '        Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(value.usercrc)
-            '        UdpClientManager.SendUDPMessage(value.ReturnAsCryptedArray(c.MD5_Password), Net.IPAddress.Parse(c.SourceIp), c.SourcePort)
-            '        Debug.WriteLine("Direct Cache access -> Sent")
-            '        ECMFoundInCache = True
-            '        Exit For
-            '    End If
-            'Next
-
-            If Not ECMFoundInCache Then
+            SyncLock List
                 List.Add(value)
-                'If Not SameRequestInQueue Then
-                Dim r As New RedirectRequests(value)
-                Dim t As New Threading.Thread(AddressOf r.Start)
-                t.IsBackground = True
-                t.Start()
-                'End If
-            End If
+            End SyncLock
+            Dim r As New RedirectRequests(value)
+            Dim t As New Threading.Thread(AddressOf r.Start)
+            t.IsBackground = True
+            t.Start()
             Clean()
         End Sub
 
         Public Sub Clean()
 
             Dim idx As Integer
-            Do While idx < List.Count
-                Dim c As clsCAMDMsg = CType(List(idx), clsCAMDMsg)
-                If DateDiff(DateInterval.Second, c.reqtime, Now) > 20 Then
-                    List.Remove(c)
-                Else
-                    idx += 1
-                End If
-            Loop
-
+            SyncLock List
+                Do While idx < List.Count
+                    Dim c As clsCAMDMsg = CType(List(idx), clsCAMDMsg)
+                    If DateDiff(DateInterval.Second, c.reqtime, Now) > 20 Then
+                        List.Remove(c)
+                    Else
+                        idx += 1
+                    End If
+                Loop
+            End SyncLock
         End Sub
 
         Default Public Property Item(ByVal index As Integer) As clsCAMDMsg
