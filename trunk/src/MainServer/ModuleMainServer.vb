@@ -140,7 +140,8 @@ Module ModuleMainServer
                     ecm.LoadFromPlainByteArray(plainRequest)
                     ecm.usercrc = message.ucrcInt
                     ecm.SenderUCRC = sClient.ucrc
-                    ecm.incomingIP = message.sourceIP
+                    ecm.SourceIP = message.sourceIP
+                    ecm.SourcePort = message.sourcePort
                     strClientResult &= ecm.CMD
 
                     Select Case ecm.CMD
