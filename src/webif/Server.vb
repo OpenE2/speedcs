@@ -1046,7 +1046,7 @@ Public Class Server
         sMessage.Append("</td></tr>")
 
         sMessage.Append("<tr><th>Listenport</th><td><input type='text' name='newcamdport' value='" & CfgGlobals.NewCamdPort & "'></td></tr>")
-
+        'TODO: DES Key should be here too
 
         sMessage.Append("<tr class='head'><th colspan=2>Webinterface</td></tr>")
         sMessage.Append("<tr><th>TCP Port</th><td><input type='text' name='adminport' value='" & CfgGlobals.AdminPort & "'></td></tr>")
