@@ -47,7 +47,8 @@ Public Class clsCache
         Public OriginalRaw As Byte()
         Public IncomingTimeStamp As Long = Environment.TickCount
         Public srvidcaid As UInt32
-        Public incomingIP As String
+        Public SourceIP As String
+        Public SourcePort As Integer
 
         Public Property ecmcrc() As UInt32
             Get
@@ -293,7 +294,8 @@ Public Class clsCache
             r._OriginalLength = _OriginalLength
             r.IncomingTimeStamp = IncomingTimeStamp
             r.srvidcaid = srvidcaid
-            r.incomingIP = incomingIP
+            r.SourceIP = SourceIP
+            r.SourcePort = SourcePort
             Return r
         End Function
 
@@ -417,9 +419,9 @@ Public Class clsCache
 
                 For Each udpserv As clsUDPIO In udpServers
                     Try
-                        If udpserv.serverobject.SendECMs And Not udpserv.serverobject.IP = _ecm.incomingIP Then
+                        If udpserv.serverobject.SendECMs And Not udpserv.serverobject.IP.Equals(_ecm.SourceIP) And Not udpserv.serverobject.Port.Equals(_ecm.SourcePort) Then
                             If Not udpserv.serverobject.deniedSRVIDCAID.Contains(_ecm.srvidcaid) Then
-                                Debug.WriteLine("Send to " & udpserv.serverobject.Hostname & ":" & udpserv.serverobject.Port & " with " & udpserv.serverobject.Username & ":" & udpserv.serverobject.Password & "-" & udpserv.serverobject.IP & "-" & _ecm.incomingIP)
+                                Debug.WriteLine("Send to " & udpserv.serverobject.Hostname & ":" & udpserv.serverobject.Port & " with " & udpserv.serverobject.Username & ":" & udpserv.serverobject.Password & "-" & udpserv.serverobject.IP & "-" & _ecm.SourceIP)
                                 _ecm.usercrc = udpserv.serverobject.UCRC
                                 udpserv.SendUDPMessage(_ecm.ReturnAsCryptedArray(udpserv.serverobject.MD5_Password), Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
                             End If
