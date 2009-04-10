@@ -98,6 +98,7 @@ Public Class clsSettingsGlobal
 
     Public NewCamdUse As Boolean = True
     Public NewCamdPort As Integer = 20247
+    Public NewCamdKey As String = "0102030405060708091011121314"
 
 #End Region
 
