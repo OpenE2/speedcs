@@ -25,7 +25,7 @@ Imports System.IO
 
 Module ModuleMainServer
     'Private swatch As New Stopwatch
-    Private WithEvents emmSender As New Timers.Timer(4000)
+    Private WithEvents emmSender As New Timers.Timer(6000)
 
 #Region "udpServerManagers"
 
@@ -140,6 +140,7 @@ Module ModuleMainServer
                     ecm.LoadFromPlainByteArray(plainRequest)
                     ecm.usercrc = message.ucrcInt
                     ecm.SenderUCRC = sClient.ucrc
+                    ecm.incomingIP = message.sourceIP
                     strClientResult &= ecm.CMD
 
                     Select Case ecm.CMD
