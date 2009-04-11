@@ -25,7 +25,7 @@ Module ModuleMain
     Public stopAll As Boolean = False
 
     Sub Main()
-        'Console.WindowWidth = 100
+        Console.WindowWidth = 100
         Try
             OSTypeIs = CheckOStype()
 
