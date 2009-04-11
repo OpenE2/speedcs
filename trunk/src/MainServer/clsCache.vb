@@ -1,4 +1,6 @@
-﻿' 
+﻿Imports System.IO
+
+' 
 '	Copyright (C) 2009 SpeedCS Team
 '	http://streamboard.gmc.to
 '
@@ -152,8 +154,14 @@ Public Class clsCache
                 End Select
                 unknown = BitConverter.ToUInt16(plainRequest, 6 - 4)
                 unknown = CUShort(Math.Floor(unknown / 256) + 256 * (unknown And 255)) 'Convert to Little Endian
-                ecmcrc = BitConverter.ToUInt32(plainRequest, 8 - 4)
-                ecmcrc = CUInt(Math.Floor(ecmcrc / 65536) + 65536 * (ecmcrc And 65535)) 'Convert to Little Endian
+                'ecmcrc = BitConverter.ToUInt32(plainRequest, 8 - 4)
+                'ecmcrc = CUInt(Math.Floor(ecmcrc / 65536) + 65536 * (ecmcrc And 65535)) 'Convert to Little Endian
+                'HACK: Testwise faking ecmcrc by using a own crc from srvid+caid+provid
+                Using ms As New MemoryStream
+                    ms.Write(plainRequest, 8, 8)
+                    ecmcrc = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
+                End Using
+
                 _SRVID = BitConverter.ToUInt16(plainRequest, 12 - 4)
                 _SRVID = CUShort(Math.Floor(_SRVID / 256) + 256 * (_SRVID And 255)) 'Convert to Little Endian
                 _CAId = BitConverter.ToUInt16(plainRequest, 14 - 4)
@@ -358,7 +366,7 @@ Public Class clsCache
                     Dim c As clsCAMDMsg = CType(Cache.ServerRequests(idx), clsCAMDMsg)
                     If _ecm.ecmcrc.Equals(Cache.ServerRequests(idx).ecmcrc) Then
                         Do While True
-                            If (StartWaitTimer.ElapsedMilliseconds > 10000) Then
+                            If (StartWaitTimer.ElapsedMilliseconds > 13000) Then
                                 Output("Timeout reached for " & _ecm.ServiceName, LogColor:=ConsoleColor.Red)
                                 Return
                             End If
@@ -472,6 +480,7 @@ Public Class clsCache
 
     Public Class clsAnswers
         Inherits CollectionBase
+
         Public Sub Add(ByVal value As clsCAMDMsg)
             'For Each e As clsECM In Cache.ServerRequests
             'If e.CAId.Equals(value.CAId) And e.ClientPID.Equals(value.ClientPID) And e.unknown.Equals(value.unknown) Then
