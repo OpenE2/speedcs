@@ -146,6 +146,18 @@ Public Class clsCache
         End Function
     End Class
 
+    Public Class clsCMD1Answers
+        Inherits SortedList(Of UInt32, clsCMD1Answer)
+
+        Public Overloads Sub Add(ByVal PlainCMD1Message() As Byte)
+            Dim a As New clsCMD1Answer(PlainCMD1Message)
+            If Me.ContainsKey(a.iCAID) Then 'CRC from srvid+caid+provid becomes key
+
+            Else
+
+            End If
+        End Sub
+    End Class
 
     Public Class clsCAMDMsg
         Public CMD As clsCache.CMDType
