@@ -537,8 +537,26 @@ Public Class Server
                             sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & s.Username & "'></td></tr>")
                             sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & s.Password & "'></td></tr>")
                             sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
-                            sMessage.Append("<tr><td colspan=2><input type='submit' value='Save'></td></tr>")
+                            sMessage.Append("<tr><td colspan=3><input type='submit' value='Save'></td></tr>")
+
+                            sMessage.Append("<tr><td colspan=3><table border=1><tr><td>autoblocked</td></tr>")
+                            For Each srvidcaid As UInt32 In s.deniedSRVIDCAID
+                                sMessage.Append("<tr><td>")
+                                Dim output() As Byte = BitConverter.GetBytes(srvidcaid)
+                                sMessage.Append(Hex(output(0)).PadLeft(2, CChar("0")))
+                                sMessage.Append(Hex(output(1)).PadLeft(2, CChar("0")))
+                                sMessage.Append(":")
+                                sMessage.Append(Hex(output(2)).PadLeft(2, CChar("0")))
+                                sMessage.Append(Hex(output(3)).PadLeft(2, CChar("0")))
+                                sMessage.Append("</td></tr>")
+                            Next
+                            sMessage.Append("</table></td></tr>")
+
+
+
                             sMessage.Append("</form>")
+
+
                             Exit For
                         End If
                     Next
