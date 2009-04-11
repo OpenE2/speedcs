@@ -37,6 +37,7 @@ Public Class clsCache
 
     Public Class clsCMD1Answer
         Private _ECM_CRC() As Byte
+        Private _CreateDate As Date
 
         Public CAID() As Byte
         Public iCAID As UInt16
@@ -53,33 +54,49 @@ Public Class clsCache
             End Get
         End Property
 
-        Public Sub GetFromCMD1Message(ByVal PlainMessage() As Byte)
-            _Length = PlainMessage(1)
+        Public ReadOnly Property Age() As Long
+            Get
+                Return DateDiff(DateInterval.Second, _CreateDate, Date.Now)
+            End Get
+        End Property
+
+
+        Public Sub New(ByVal PlainCMD1Message() As Byte)
+            GetFromCMD1Message(PlainCMD1Message)
+        End Sub
+
+        Public Sub ReNew(ByVal PlainCMD1Message() As Byte)
+            GetFromCMD1Message(PlainCMD1Message)
+        End Sub
+
+        Public Sub GetFromCMD1Message(ByVal PlainCMD1Message() As Byte)
+            _Length = PlainCMD1Message(1)
+            _CreateDate = Date.Now
 
             Using ms As New MemoryStream
-                ms.Write(PlainMessage, 4, 4)
+                ms.Write(PlainCMD1Message, 4, 4)
                 _ECM_CRC = ms.ToArray
             End Using
             Using ms As New MemoryStream
-                ms.Write(PlainMessage, 8, 2)
+                ms.Write(PlainCMD1Message, 8, 2)
                 SRVID = ms.ToArray
                 iSRVID = BitConverter.ToUInt16(SRVID, 0)
                 iSRVID = CUShort(Math.Floor(iSRVID / 256) + 256 * (iSRVID And 255)) 'Convert to Little Endian
             End Using
             Using ms As New MemoryStream
-                ms.Write(PlainMessage, 10, 2)
+                ms.Write(PlainCMD1Message, 10, 2)
                 CAID = ms.ToArray
                 iCAID = BitConverter.ToUInt16(CAID, 0)
                 iCAID = CUShort(Math.Floor(iCAID / 256) + 256 * (iCAID And 255)) 'Convert to Little Endian
             End Using
             Using ms As New MemoryStream
-                ms.Write(PlainMessage, 12, 4)
+                ms.Write(PlainCMD1Message, 12, 4)
                 PROVID = ms.ToArray
                 iPROVID = BitConverter.ToUInt32(PROVID, 0)
                 iPROVID = CUInt(Math.Floor(iPROVID / 65536) + 65536 * (iPROVID And 65535)) 'Convert to Little Endian
             End Using
             Using ms As New MemoryStream
-                ms.Write(PlainMessage, 16, _Length)
+                ms.Write(PlainCMD1Message, 16, _Length)
                 CW = ms.ToArray
             End Using
         End Sub
