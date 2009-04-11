@@ -35,6 +35,95 @@ Public Class clsCache
         unknown = &HFF
     End Enum
 
+    Public Class clsCMD1Answer
+        Private _ECM_CRC() As Byte
+
+        Public CAID() As Byte
+        Public iCAID As UInt16
+        Public SRVID() As Byte
+        Public iSRVID As UInt16
+        Public PROVID() As Byte
+        Public iPROVID As UInt32
+        Public CW() As Byte
+
+        Private _Length As Byte
+        Public ReadOnly Property Length() As Byte
+            Get
+                Return _Length
+            End Get
+        End Property
+
+        Public Sub GetFromCMD1Message(ByVal PlainMessage() As Byte)
+            _Length = PlainMessage(1)
+
+            Using ms As New MemoryStream
+                ms.Write(PlainMessage, 4, 4)
+                _ECM_CRC = ms.ToArray
+            End Using
+            Using ms As New MemoryStream
+                ms.Write(PlainMessage, 8, 2)
+                SRVID = ms.ToArray
+                iSRVID = BitConverter.ToUInt16(SRVID, 0)
+                iSRVID = CUShort(Math.Floor(iSRVID / 256) + 256 * (iSRVID And 255)) 'Convert to Little Endian
+            End Using
+            Using ms As New MemoryStream
+                ms.Write(PlainMessage, 10, 2)
+                CAID = ms.ToArray
+                iCAID = BitConverter.ToUInt16(CAID, 0)
+                iCAID = CUShort(Math.Floor(iCAID / 256) + 256 * (iCAID And 255)) 'Convert to Little Endian
+            End Using
+            Using ms As New MemoryStream
+                ms.Write(PlainMessage, 12, 4)
+                PROVID = ms.ToArray
+                iPROVID = BitConverter.ToUInt32(PROVID, 0)
+                iPROVID = CUInt(Math.Floor(iPROVID / 65536) + 65536 * (iPROVID And 65535)) 'Convert to Little Endian
+            End Using
+            Using ms As New MemoryStream
+                ms.Write(PlainMessage, 16, _Length)
+                CW = ms.ToArray
+            End Using
+        End Sub
+
+        Private Function GetECMFromStructure() As Byte()
+            Using ms As New MemoryStream
+                ms.Write(SRVID, 0, 2)
+                ms.Write(CAID, 0, 2)
+                ms.Write(PROVID, 0, 4)
+                ms.Write(CW, 0, CW.Length)
+                GetECMFromStructure = ms.ToArray
+            End Using
+        End Function
+
+        Public Function TransformCMD0toCMD1Message(ByVal CMD0Message() As Byte) As Byte()
+            If CMD0Message(0) = CMDType.ECMRequest Then
+                Using ms As New MemoryStream
+                    ms.WriteByte(&H1)
+                    ms.WriteByte(_Length)
+                    ms.WriteByte(CMD0Message(3))
+                    ms.WriteByte(CMD0Message(2))
+                    ms.Write(_ECM_CRC, 0, 4)
+                    ms.Write(SRVID, 0, 2)
+                    ms.Write(CAID, 0, 2)
+                    ms.Write(PROVID, 0, 4)
+                    ms.Write(CW, 0, _Length)
+                    While Not ms.Length = 48
+                        ms.WriteByte(&HFF)
+                    End While
+                    TransformCMD0toCMD1Message = ms.ToArray
+                End Using
+            Else
+                Using ms As New MemoryStream
+                    While Not ms.Length = 48
+                        ms.WriteByte(&H99)
+                    End While
+                    TransformCMD0toCMD1Message = ms.ToArray
+                End Using
+                Debug.WriteLine("No CMD0 given")
+            End If
+        End Function
+    End Class
+
+
     Public Class clsCAMDMsg
         Public CMD As clsCache.CMDType
         Public _ecmcrc As UInt32
