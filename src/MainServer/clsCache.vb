@@ -46,6 +46,7 @@ Public Class clsCache
         Public PROVID() As Byte
         Public iPROVID As UInt32
         Public CW() As Byte
+        Public Key As UInt32
 
         Private _Length As Byte
         Public ReadOnly Property Length() As Byte
@@ -62,7 +63,11 @@ Public Class clsCache
 
         Public ReadOnly Property Dead() As Boolean
             Get
-                Return DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 6
+                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 6 Then
+                    Return True
+                Else
+                    Return False
+                End If
             End Get
         End Property
 
@@ -78,7 +83,10 @@ Public Class clsCache
         Public Sub GetFromCMD1Message(ByVal PlainCMD1Message() As Byte)
             _Length = PlainCMD1Message(1)
             _CreateDate = Date.Now
-
+            Using ms As New MemoryStream
+                ms.Write(PlainCMD1Message, 8, 8)
+                Key = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
+            End Using
             Using ms As New MemoryStream
                 ms.Write(PlainCMD1Message, 4, 4)
                 _ECM_CRC = ms.ToArray
@@ -151,13 +159,45 @@ Public Class clsCache
 
         Public Overloads Sub Add(ByVal PlainCMD1Message() As Byte)
             Dim a As New clsCMD1Answer(PlainCMD1Message)
-            If Me.ContainsKey(a.iCAID) Then 'CRC from srvid+caid+provid becomes key
-
+            If Me.ContainsKey(a.Key) Then
+                If Me(a.Key).Dead Then
+                    Me(a.Key).ReNew(PlainCMD1Message)
+                    Debug.WriteLine("Renew CMD1")
+                End If
             Else
-
+                Me.Add(a.Key, a)
+                Debug.WriteLine("Add CMD1")
             End If
         End Sub
+
+        Public Sub Clean()
+            For Each a As clsCMD1Answer In Me.Values
+                If a.Dead Then
+                    Me.Remove(a.Key)
+                End If
+            Next
+        End Sub
+
+        Public Function GetCMD1ByKey(ByVal Key As UInt32) As clsCMD1Answer
+            If Me.ContainsKey(Key) Then
+                Return Me(Key)
+            Else
+                Return Nothing
+            End If
+        End Function
+
     End Class
+
+    Private _CMD1Answers As New clsCMD1Answers
+    Public Property CMD1Answers() As clsCMD1Answers
+        Get
+            Return _CMD1Answers
+        End Get
+        Set(ByVal value As clsCMD1Answers)
+            _CMD1Answers = value
+        End Set
+    End Property
+
 
     Public Class clsCAMDMsg
         Public CMD As clsCache.CMDType
