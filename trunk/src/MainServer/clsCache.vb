@@ -60,6 +60,12 @@ Public Class clsCache
             End Get
         End Property
 
+        Public ReadOnly Property Dead() As Boolean
+            Get
+                Return DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 6
+            End Get
+        End Property
+
 
         Public Sub New(ByVal PlainCMD1Message() As Byte)
             GetFromCMD1Message(PlainCMD1Message)
