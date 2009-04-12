@@ -2,11 +2,18 @@
 
 Public Class clsCMDManager
 
+    Public Sub New()
+        AddHandler CMD1Answers.GotCommand, AddressOf IncommingCMD1
+        AddHandler CMD0Requests.GotCommand, AddressOf IncommingCMD0
+    End Sub
+
+#Region "CMD 1 Answers"
+
     Public Class clsCMD1Answer
         Private _ECM_CRC() As Byte
         Private _CreateDate As Date
 
-        Public CMD As Byte
+        Public CMD As types.CMDType
         Public CAID() As Byte
         Public iCAID As UInt16
         Public SRVID() As Byte
@@ -48,7 +55,7 @@ Public Class clsCMDManager
         End Sub
 
         Public Sub GetFromCMD1Message(ByVal PlainCMD1Message() As Byte)
-            CMD = PlainCMD1Message(0)
+            CMD = CType(PlainCMD1Message(0), types.CMDType)
             _Length = PlainCMD1Message(1)
             _CreateDate = Date.Now
             Using ms As New MemoryStream
@@ -104,10 +111,13 @@ Public Class clsCMDManager
                     ms.Write(SRVID, 0, 2)
                     ms.Write(CAID, 0, 2)
                     ms.Write(PROVID, 0, 4)
+                    ms.Write(CMD0Message, 16, 4) 'CHID
                     ms.Write(CW, 0, _Length)
                     While Not ms.Length = 48
                         ms.WriteByte(&HFF)
                     End While
+                    DebugOutputBytes(CMD0Message, "original ")
+                    DebugOutputBytes(ms.ToArray, "transform ")
                     TransformCMD0toCMD1Message = ms.ToArray
                 End Using
             Else
@@ -124,29 +134,34 @@ Public Class clsCMDManager
 
     Public Class clsCMD1Answers
         Inherits SortedList(Of UInt32, clsCMD1Answer)
-        Public Event GotCommand(ByVal sender As Object, ByVal command As Byte)
+        Public Event GotCommand(ByVal sender As Object, ByVal command As types.CMDType)
 
         Public Overloads Sub Add(ByVal PlainCMD1Message() As Byte)
-            Dim a As New clsCMD1Answer(PlainCMD1Message)
-            If Me.ContainsKey(a.Key) Then
-                If Me(a.Key).Dead Then
-                    Me(a.Key).ReNew(PlainCMD1Message)
-                    RaiseEvent GotCommand(Me, Me(a.Key).CMD)
-                    Debug.WriteLine("Renew CMD1")
+            SyncLock Me
+                Dim a As New clsCMD1Answer(PlainCMD1Message)
+                If Me.ContainsKey(a.Key) Then
+                    If Me(a.Key).Dead Then
+                        Me(a.Key).ReNew(PlainCMD1Message)
+                        RaiseEvent GotCommand(Me(a.Key), Me(a.Key).CMD)
+                        Debug.WriteLine("Renew CMD1")
+                    End If
+                Else
+                    Me.Add(a.Key, a)
+                    RaiseEvent GotCommand(a, a.CMD)
+                    Debug.WriteLine("Add CMD1")
                 End If
-            Else
-                Me.Add(a.Key, a)
-                RaiseEvent GotCommand(Me, a.CMD)
-                Debug.WriteLine("Add CMD1")
-            End If
+            End SyncLock
+            Me.Clean()
         End Sub
 
         Public Sub Clean()
-            For Each a As clsCMD1Answer In Me.Values
-                If a.Dead Then
-                    Me.Remove(a.Key)
-                End If
-            Next
+            SyncLock Me
+                For idx As Integer = Me.Count - 1 To 0 Step -1
+                    If Me.Item(Keys(idx)).Dead Then
+                        Me.Remove(Keys(idx))
+                    End If
+                Next
+            End SyncLock
         End Sub
 
         Public Function GetCMD1ByKey(ByVal Key As UInt32) As clsCMD1Answer
@@ -169,15 +184,16 @@ Public Class clsCMDManager
         End Set
     End Property
 
+#End Region
 
-
+#Region "CMD 0 Requests"
 
     Public Class clsCMD0Request
         Private _ECM_CRC() As Byte
         Private _CreateDate As Date
 
-        Public UCRC As UInt32
-        Public CMD As Byte
+        Public UCRC As New List(Of UInt32)
+        Public CMD As types.CMDType
         Public CAID() As Byte
         Public iCAID As UInt16
         Public SRVID() As Byte
@@ -213,14 +229,15 @@ Public Class clsCMDManager
 
         Public Sub New(ByVal PlainCMD0Message() As Byte, ByVal sUCRC As UInt32)
             GetFromCMD0Message(PlainCMD0Message, sUCRC)
+            'Me.UCRC.Add(sUCRC, Nothing)
         End Sub
 
-        Public Sub GetFromCMD0Message(ByVal PlainCMD0Message() As Byte, ByVal rUCRC As UInt32)
-            CMD = PlainCMD0Message(0)
-            UCRC = rUCRC
+        Public Sub GetFromCMD0Message(ByVal PlainCMD0Message() As Byte, ByVal sUCRC As UInt32)
+            CMD = CType(PlainCMD0Message(0), types.CMDType)
             PlainMessage = PlainCMD0Message
             _Length = PlainCMD0Message(1)
             _CreateDate = Date.Now
+            UCRC.Add(sUCRC)
             Using ms As New MemoryStream
                 ms.Write(PlainCMD0Message, 8, 8)
                 Key = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
@@ -256,22 +273,31 @@ Public Class clsCMDManager
 
     Public Class clsCMD0Requests
         Inherits SortedList(Of UInt32, clsCMD0Request)
-        Public Event GotCommand(ByVal sender As Object, ByVal command As Byte)
+        Public Event GotCommand(ByVal sender As Object, ByVal command As types.CMDType)
 
         Public Overloads Sub Add(ByVal PlainCMD0Message() As Byte, ByVal sUCRC As UInt32)
+            Me.Clean()
             Dim a As New clsCMD0Request(PlainCMD0Message, sUCRC)
-
+            SyncLock Me
+                If Not Me.ContainsKey(a.Key) Then
+                    Me.Add(a.Key, a)
+                Else
+                    Me(a.Key).UCRC.Add(sUCRC)
+                End If
+            End SyncLock
         End Sub
 
         Public Sub Clean()
-            For Each a As clsCMD0Request In Me.Values
-                If a.Dead Then
-                    Me.Remove(a.Key)
-                End If
-            Next
+            SyncLock Me
+                For idx As Integer = Me.Count - 1 To 0 Step -1
+                    If Me.Item(Keys(idx)).Dead Then
+                        Me.Remove(Keys(idx))
+                    End If
+                Next
+            End SyncLock
         End Sub
 
-        Public Function GetCMD1ByKey(ByVal Key As UInt32) As clsCMD0Request
+        Public Function GetCMD0ByKey(ByVal Key As UInt32) As clsCMD0Request
             If Me.ContainsKey(Key) Then
                 Return Me(Key)
             Else
@@ -279,4 +305,44 @@ Public Class clsCMDManager
             End If
         End Function
     End Class
+
+    Private _CMD0Requests As New clsCMD0Requests
+    Public Property CMD0Requests() As clsCMD0Requests
+        Get
+            Return _CMD0Requests
+        End Get
+        Set(ByVal value As clsCMD0Requests)
+            _CMD0Requests = value
+        End Set
+    End Property
+#End Region
+    'Hack: aktueller Clientsender - funzt nicht (client sagt "wrong Password")
+    Private Sub IncommingCMD1(ByVal sender As Object, ByVal type As types.CMDType)
+        Dim answer As clsCMD1Answer = TryCast(sender, clsCMD1Answer)
+        Dim request As clsCMD0Request = TryCast(CMD0Requests(answer.Key), clsCMD0Request)
+        If Not request Is Nothing Then
+            For Each ucrc As UInt32 In request.UCRC
+                Dim preSend() As Byte = answer.TransformCMD0toCMD1Message(request.PlainMessage)
+
+                Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(ucrc)
+                Using ms As New MemoryStream
+                    Dim ucrcbytes() As Byte = BitConverter.GetBytes(ucrc)
+                    Array.Reverse(ucrcbytes)
+                    ms.Write(ucrcbytes, 0, 4)
+                    Dim encrypted() As Byte = AESCrypt.Encrypt(preSend, c.MD5_Password)
+                    ms.Write(encrypted, 0, encrypted.Length)
+                    UdpClientManager.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
+                    'DebugOutputBytes(ms.ToArray, "Post Send: ")
+                End Using
+                'Debug.WriteLine("sent to: " & c.Username)
+            Next
+            request.UCRC.Clear()
+            CMD0Requests.Remove(request.Key)
+        End If
+
+    End Sub
+
+    Private Sub IncommingCMD0(ByVal sender As Object, ByVal type As types.CMDType)
+
+    End Sub
 End Class

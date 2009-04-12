@@ -565,7 +565,8 @@ Public Class clsCache
                             _ecm.ClientPID = req.ClientPID
                             If Not c Is Nothing Then
                                 _ecm.CMD = types.CMDType.ECMResponse
-                                UdpClientManager.SendUDPMessage(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
+                                'Hack: hier einkommentiern stellt die alte Funktion wieder her
+                                'UdpClientManager.SendUDPMessage(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
 
                                 Dim adressData As String = c.SourceIp & ":" & c.SourcePort
                                 adressData = adressData.PadRight(22)
