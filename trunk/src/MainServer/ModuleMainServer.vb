@@ -160,6 +160,11 @@ Module ModuleMainServer
                             strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
                             If Not emmSender.Enabled Then emmSender.Start()
 
+
+                            CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt)
+                            Debug.WriteLine("Requests in cachemanager: " & CacheManager.CMD0Requests.Count)
+
+
                         Case types.CMDType.BroadCastResponse  'Answer
                             'ecm.CMD = &H99
                             Cache.Answers.Add(ecm)
@@ -270,7 +275,8 @@ Module ModuleMainServer
                     If Not found Then Cache.Answers.Add(ecm)
                     strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
 
-                    'Cache.CMD1Answers.Add(plainRequest)
+                    CacheManager.CMD1Answers.Add(plainRequest)
+                    Debug.WriteLine("Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
 
                 Case types.CMDType.EMMRequest  'Emm Zeuchs
                     logColor = ConsoleColor.Cyan
@@ -358,6 +364,7 @@ Module ModuleMainServer
         End SyncLock
         emmSender.Stop()
     End Sub
+
 
 
 

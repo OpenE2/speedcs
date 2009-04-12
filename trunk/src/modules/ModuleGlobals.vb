@@ -167,6 +167,9 @@ Module ModuleGlobals
     Public Webserver As New clsWebserver
 
     Public Cache As New clsCache
+    Public WithEvents CacheManager As New clsCMDManager
+
+
 
     Public AESCrypt As New clsAESCrypt
 
