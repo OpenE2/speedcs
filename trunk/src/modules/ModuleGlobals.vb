@@ -23,7 +23,25 @@ Imports System.Reflection
 Imports Microsoft.Win32
 Imports System.IO
 
+Namespace types
+
+    Public Enum CMDType
+        ECMRequest = &H0
+        ECMResponse = &H1
+        CascadingRequest = &H3
+        EMMRequest = &H5
+        EMMResponse = &H6
+        NotFound = &H44
+        BroadCastResponse = &H66
+        CRCError = &H99
+        unknown = &HFF
+    End Enum
+
+End Namespace
+
 Module ModuleGlobals
+
+
 
 #Region "Detect Operating System"
 

@@ -152,7 +152,7 @@ Module ModuleMainServer
 
                     Select Case ecm.CMD
 
-                        Case clsCache.CMDType.ECMRequest  'Request
+                        Case types.CMDType.ECMRequest  'Request
                             If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
                             If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
                             sClient.lastrequest = Now
@@ -160,22 +160,22 @@ Module ModuleMainServer
                             strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
                             If Not emmSender.Enabled Then emmSender.Start()
 
-                        Case clsCache.CMDType.BroadCastResponse  'Answer
+                        Case types.CMDType.BroadCastResponse  'Answer
                             'ecm.CMD = &H99
                             Cache.Answers.Add(ecm)
                             logColor = ConsoleColor.DarkYellow
                             strClientResult = "Broadcast: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
 
-                        Case clsCache.CMDType.CascadingRequest  'Request cascading (MPCS Source)
+                        Case types.CMDType.CascadingRequest  'Request cascading (MPCS Source)
                             strClientResult = "Command 03 Cascading?!"
 
-                        Case clsCache.CMDType.NotFound  'Fehler ?!
+                        Case types.CMDType.NotFound  'Fehler ?!
                             strClientResult = "Command 44 Error"
 
-                        Case clsCache.CMDType.CRCError  'CRC false
+                        Case types.CMDType.CRCError  'CRC false
                             strClientResult = "CRC of ECM wrong!"
 
-                        Case clsCache.CMDType.EMMResponse
+                        Case types.CMDType.EMMResponse
                             strClientResult = "Emm Client Response"
                             logColor = ConsoleColor.Cyan
 
@@ -250,10 +250,10 @@ Module ModuleMainServer
 
             Select Case ecm.CMD
 
-                Case clsCache.CMDType.ECMRequest 'Request
+                Case types.CMDType.ECMRequest 'Request
                     strServerResult = " CMD00 shouldn't be here"
 
-                Case clsCache.CMDType.ECMResponse  'Answer
+                Case types.CMDType.ECMResponse  'Answer
                     Dim found As Boolean = False
                     For Each sr As clsCache.clsCAMDMsg In Cache.ServerRequests
                         If sr.ClientPID.Equals(ecm.ClientPID) Then
@@ -270,9 +270,9 @@ Module ModuleMainServer
                     If Not found Then Cache.Answers.Add(ecm)
                     strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
 
-                    Cache.CMD1Answers.Add(plainRequest)
+                    'Cache.CMD1Answers.Add(plainRequest)
 
-                Case clsCache.CMDType.EMMRequest  'Emm Zeuchs
+                Case types.CMDType.EMMRequest  'Emm Zeuchs
                     logColor = ConsoleColor.Cyan
                     If Not plainRequest(1) = &H70 Then
                         strServerResult = "EMM Request CMD05"
@@ -297,13 +297,13 @@ Module ModuleMainServer
                         strServerResult = "EMM Request CMD05 suppressed "
                     End If
 
-                Case clsCache.CMDType.NotFound  'Fehler timeout/notfound whatever?!
+                Case types.CMDType.NotFound  'Fehler timeout/notfound whatever?!
                     strServerResult = "not found CMD44"
                     If Not mSender.serverobject.deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
                         mSender.serverobject.deniedSRVIDCAID.Add(ecm.srvidcaid)
                     End If
                     DebugOutputBytes(plainRequest, "CMD44: ")
-                Case clsCache.CMDType.CRCError  'CRC false
+                Case types.CMDType.CRCError  'CRC false
                     strServerResult = "CRC of ECM wrong!"
 
                 Case Else

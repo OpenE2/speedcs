@@ -23,184 +23,8 @@
 
 Public Class clsCache
 
-    Public Enum CMDType
-        ECMRequest = &H0
-        ECMResponse = &H1
-        CascadingRequest = &H3
-        EMMRequest = &H5
-        EMMResponse = &H6
-        NotFound = &H44
-        BroadCastResponse = &H66
-        CRCError = &H99
-        unknown = &HFF
-    End Enum
-
-    Public Class clsCMD1Answer
-        Private _ECM_CRC() As Byte
-        Private _CreateDate As Date
-
-        Public CAID() As Byte
-        Public iCAID As UInt16
-        Public SRVID() As Byte
-        Public iSRVID As UInt16
-        Public PROVID() As Byte
-        Public iPROVID As UInt32
-        Public CW() As Byte
-        Public Key As UInt32
-
-        Private _Length As Byte
-        Public ReadOnly Property Length() As Byte
-            Get
-                Return _Length
-            End Get
-        End Property
-
-        Public ReadOnly Property Age() As Long
-            Get
-                Return DateDiff(DateInterval.Second, _CreateDate, Date.Now)
-            End Get
-        End Property
-
-        Public ReadOnly Property Dead() As Boolean
-            Get
-                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 6 Then
-                    Return True
-                Else
-                    Return False
-                End If
-            End Get
-        End Property
-
-
-        Public Sub New(ByVal PlainCMD1Message() As Byte)
-            GetFromCMD1Message(PlainCMD1Message)
-        End Sub
-
-        Public Sub ReNew(ByVal PlainCMD1Message() As Byte)
-            GetFromCMD1Message(PlainCMD1Message)
-        End Sub
-
-        Public Sub GetFromCMD1Message(ByVal PlainCMD1Message() As Byte)
-            _Length = PlainCMD1Message(1)
-            _CreateDate = Date.Now
-            Using ms As New MemoryStream
-                ms.Write(PlainCMD1Message, 8, 8)
-                Key = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
-            End Using
-            Using ms As New MemoryStream
-                ms.Write(PlainCMD1Message, 4, 4)
-                _ECM_CRC = ms.ToArray
-            End Using
-            Using ms As New MemoryStream
-                ms.Write(PlainCMD1Message, 8, 2)
-                SRVID = ms.ToArray
-                iSRVID = BitConverter.ToUInt16(SRVID, 0)
-                iSRVID = CUShort(Math.Floor(iSRVID / 256) + 256 * (iSRVID And 255)) 'Convert to Little Endian
-            End Using
-            Using ms As New MemoryStream
-                ms.Write(PlainCMD1Message, 10, 2)
-                CAID = ms.ToArray
-                iCAID = BitConverter.ToUInt16(CAID, 0)
-                iCAID = CUShort(Math.Floor(iCAID / 256) + 256 * (iCAID And 255)) 'Convert to Little Endian
-            End Using
-            Using ms As New MemoryStream
-                ms.Write(PlainCMD1Message, 12, 4)
-                PROVID = ms.ToArray
-                iPROVID = BitConverter.ToUInt32(PROVID, 0)
-                iPROVID = CUInt(Math.Floor(iPROVID / 65536) + 65536 * (iPROVID And 65535)) 'Convert to Little Endian
-            End Using
-            Using ms As New MemoryStream
-                ms.Write(PlainCMD1Message, 16, _Length)
-                CW = ms.ToArray
-            End Using
-        End Sub
-
-        Private Function GetECMFromStructure() As Byte()
-            Using ms As New MemoryStream
-                ms.Write(SRVID, 0, 2)
-                ms.Write(CAID, 0, 2)
-                ms.Write(PROVID, 0, 4)
-                ms.Write(CW, 0, CW.Length)
-                GetECMFromStructure = ms.ToArray
-            End Using
-        End Function
-
-        Public Function TransformCMD0toCMD1Message(ByVal CMD0Message() As Byte) As Byte()
-            If CMD0Message(0) = CMDType.ECMRequest Then
-                Using ms As New MemoryStream
-                    ms.WriteByte(&H1)
-                    ms.WriteByte(_Length)
-                    ms.WriteByte(CMD0Message(3))
-                    ms.WriteByte(CMD0Message(2))
-                    ms.Write(_ECM_CRC, 0, 4)
-                    ms.Write(SRVID, 0, 2)
-                    ms.Write(CAID, 0, 2)
-                    ms.Write(PROVID, 0, 4)
-                    ms.Write(CW, 0, _Length)
-                    While Not ms.Length = 48
-                        ms.WriteByte(&HFF)
-                    End While
-                    TransformCMD0toCMD1Message = ms.ToArray
-                End Using
-            Else
-                Using ms As New MemoryStream
-                    While Not ms.Length = 48
-                        ms.WriteByte(&H99)
-                    End While
-                    TransformCMD0toCMD1Message = ms.ToArray
-                End Using
-                Debug.WriteLine("No CMD0 given")
-            End If
-        End Function
-    End Class
-
-    Public Class clsCMD1Answers
-        Inherits SortedList(Of UInt32, clsCMD1Answer)
-
-        Public Overloads Sub Add(ByVal PlainCMD1Message() As Byte)
-            Dim a As New clsCMD1Answer(PlainCMD1Message)
-            If Me.ContainsKey(a.Key) Then
-                If Me(a.Key).Dead Then
-                    Me(a.Key).ReNew(PlainCMD1Message)
-                    Debug.WriteLine("Renew CMD1")
-                End If
-            Else
-                Me.Add(a.Key, a)
-                Debug.WriteLine("Add CMD1")
-            End If
-        End Sub
-
-        Public Sub Clean()
-            For Each a As clsCMD1Answer In Me.Values
-                If a.Dead Then
-                    Me.Remove(a.Key)
-                End If
-            Next
-        End Sub
-
-        Public Function GetCMD1ByKey(ByVal Key As UInt32) As clsCMD1Answer
-            If Me.ContainsKey(Key) Then
-                Return Me(Key)
-            Else
-                Return Nothing
-            End If
-        End Function
-
-    End Class
-
-    Private _CMD1Answers As New clsCMD1Answers
-    Public Property CMD1Answers() As clsCMD1Answers
-        Get
-            Return _CMD1Answers
-        End Get
-        Set(ByVal value As clsCMD1Answers)
-            _CMD1Answers = value
-        End Set
-    End Property
-
-
     Public Class clsCAMDMsg
-        Public CMD As clsCache.CMDType
+        Public CMD As types.CMDType
         Public _ecmcrc As UInt32
         Public CHID As UInt16
         Public PRID As UInt32
@@ -297,24 +121,24 @@ Public Class clsCache
                 reqtime = Now
                 Select Case plainRequest(0)
                     Case &H0
-                        CMD = CMDType.ECMRequest
+                        CMD = types.CMDType.ECMRequest
                     Case &H1
-                        CMD = CMDType.ECMResponse
+                        CMD = types.CMDType.ECMResponse
                     Case &H3
-                        CMD = CMDType.CascadingRequest
+                        CMD = types.CMDType.CascadingRequest
                     Case &H5
-                        CMD = CMDType.EMMRequest
+                        CMD = types.CMDType.EMMRequest
                     Case &H6
-                        CMD = CMDType.EMMResponse
+                        CMD = types.CMDType.EMMResponse
                     Case &H44
-                        CMD = CMDType.NotFound
+                        CMD = types.CMDType.NotFound
                     Case &H66
-                        CMD = CMDType.BroadCastResponse
+                        CMD = types.CMDType.BroadCastResponse
                     Case &H99
-                        CMD = CMDType.CRCError
+                        CMD = types.CMDType.CRCError
                     Case Else
                         Debug.WriteLine("unknown command: " & Hex(plainRequest(0)))
-                        CMD = CMDType.unknown
+                        CMD = types.CMDType.unknown
                 End Select
                 unknown = BitConverter.ToUInt16(plainRequest, 6 - 4)
                 unknown = CUShort(Math.Floor(unknown / 256) + 256 * (unknown And 255)) 'Convert to Little Endian
@@ -348,7 +172,7 @@ Public Class clsCache
                 Using ms As New IO.MemoryStream(plainRequest, 24 - 4, plainRequest(5 - 4))
                     data = ms.ToArray
                     If Not BitConverter.ToUInt32(crc32.ComputeHash(ms.ToArray), 0).Equals(BitConverter.ToUInt32(plainRequest, 8 - 4)) Then
-                        CMD = CMDType.CRCError  'CRC false
+                        CMD = types.CMDType.CRCError  'CRC false
                     End If
                     ms.Close()
                 End Using
@@ -651,10 +475,10 @@ Public Class clsCache
             'value.raw2 = e.raw
             'End If
             'Next
-            Dim isBroadcast As Boolean = value.CMD = CMDType.BroadCastResponse
+            Dim isBroadcast As Boolean = value.CMD = types.CMDType.BroadCastResponse
 
             If isBroadcast Then
-                value.CMD = CMDType.ECMResponse
+                value.CMD = types.CMDType.ECMResponse
             End If
             SyncLock List
                 List.Add(value)
@@ -740,7 +564,7 @@ Public Class clsCache
                             _ecm.usercrc = req.usercrc
                             _ecm.ClientPID = req.ClientPID
                             If Not c Is Nothing Then
-                                _ecm.CMD = CMDType.ECMResponse
+                                _ecm.CMD = types.CMDType.ECMResponse
                                 UdpClientManager.SendUDPMessage(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
 
                                 Dim adressData As String = c.SourceIp & ":" & c.SourcePort
@@ -770,12 +594,12 @@ Public Class clsCache
 
                     For Each udpserv As clsUDPIO In udpServers
                         If udpserv.serverobject.SendBroadcasts And udpserv.serverobject.Active Then
-                            If _ecm.CMD = CMDType.ECMResponse Then
+                            If _ecm.CMD = types.CMDType.ECMResponse Then
                                 'Broadcast Message muss nun kopiert werden,
                                 'da sie manchmal durch den RedirectAnswers.Start Thread verändert wird
                                 Dim BroadcastMsg As clsCache.clsCAMDMsg = _ecm.Clone
                                 BroadcastMsg.usercrc = udpserv.serverobject.UCRC
-                                BroadcastMsg.CMD = CMDType.BroadCastResponse
+                                BroadcastMsg.CMD = types.CMDType.BroadCastResponse
                                 udpserv.SendUDPMessage(BroadcastMsg.ReturnAsCryptedArray(udpserv.serverobject.MD5_Password), _
                                                        Net.IPAddress.Parse(udpserv.serverobject.IP), _
                                                        udpserv.serverobject.Port)
