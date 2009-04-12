@@ -62,6 +62,7 @@
     <Compile Include="MainServer\AsynchronousClient.vb" />
     <Compile Include="MainServer\AsynchronousSocketListener.vb" />
     <Compile Include="MainServer\clsCache.vb" />
+    <Compile Include="MainServer\clsCMDManager.vb" />
     <Compile Include="MainServer\clsTCPIO.vb" />
     <Compile Include="MainServer\clsUDPIO.vb" />
     <Compile Include="MainServer\ModuleMainServer.vb" />
