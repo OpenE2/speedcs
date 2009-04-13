@@ -259,6 +259,9 @@ Module ModuleMainServer
                     strServerResult = " CMD00 shouldn't be here"
 
                 Case types.CMDType.ECMResponse  'Answer
+                    CacheManager.CMD1Answers.Add(plainRequest)
+                    Debug.WriteLine("Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
+
                     Dim found As Boolean = False
                     For Each sr As clsCache.clsCAMDMsg In Cache.ServerRequests
                         If sr.ClientPID.Equals(ecm.ClientPID) Then
@@ -275,8 +278,7 @@ Module ModuleMainServer
                     If Not found Then Cache.Answers.Add(ecm)
                     strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
 
-                    CacheManager.CMD1Answers.Add(plainRequest)
-                    Debug.WriteLine("Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
+                    
 
                 Case types.CMDType.EMMRequest  'Emm Zeuchs
                     logColor = ConsoleColor.Cyan
