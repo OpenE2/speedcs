@@ -116,8 +116,8 @@ Public Class clsCMDManager
                     While Not ms.Length = 48
                         ms.WriteByte(&HFF)
                     End While
-                    DebugOutputBytes(CMD0Message, "original ")
-                    DebugOutputBytes(ms.ToArray, "transform ")
+                    'DebugOutputBytes(CMD0Message, "original ")
+                    'DebugOutputBytes(ms.ToArray, "transform ")
                     TransformCMD0toCMD1Message = ms.ToArray
                 End Using
             Else
@@ -192,7 +192,7 @@ Public Class clsCMDManager
         Private _ECM_CRC() As Byte
         Private _CreateDate As Date
 
-        Public UCRC As New List(Of UInt32)
+        Public UCRC As New SortedList(Of UInt32, Byte())
         Public CMD As types.CMDType
         Public CAID() As Byte
         Public iCAID As UInt16
@@ -237,7 +237,7 @@ Public Class clsCMDManager
             PlainMessage = PlainCMD0Message
             _Length = PlainCMD0Message(1)
             _CreateDate = Date.Now
-            UCRC.Add(sUCRC)
+            UCRC.Add(sUCRC, PlainCMD0Message)
             Using ms As New MemoryStream
                 ms.Write(PlainCMD0Message, 8, 8)
                 Key = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
@@ -282,7 +282,7 @@ Public Class clsCMDManager
                 If Not Me.ContainsKey(a.Key) Then
                     Me.Add(a.Key, a)
                 Else
-                    Me(a.Key).UCRC.Add(sUCRC)
+                    Me(a.Key).UCRC.Add(sUCRC, PlainCMD0Message)
                 End If
             End SyncLock
         End Sub
@@ -320,23 +320,32 @@ Public Class clsCMDManager
     Private Sub IncommingCMD1(ByVal sender As Object, ByVal type As types.CMDType)
         Dim answer As clsCMD1Answer = TryCast(sender, clsCMD1Answer)
         Dim request As clsCMD0Request = TryCast(CMD0Requests(answer.Key), clsCMD0Request)
+        'If one of the request matches
         If Not request Is Nothing Then
-            For Each ucrc As UInt32 In request.UCRC
-                Dim preSend() As Byte = answer.TransformCMD0toCMD1Message(request.PlainMessage)
-
+            'for each requesting client in this request
+            For Each ucrc As UInt32 In request.UCRC.Keys
+                'transform cmd0 to cmd1 with client's cmd 0
+                Dim preSend() As Byte = answer.TransformCMD0toCMD1Message(request.UCRC(ucrc))
+                DebugOutputBytes(preSend, "Pre Send: ")
+                'find clientdata by ucrc
                 Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(ucrc)
                 Using ms As New MemoryStream
+                    'built ucrc header
                     Dim ucrcbytes() As Byte = BitConverter.GetBytes(ucrc)
                     Array.Reverse(ucrcbytes)
                     ms.Write(ucrcbytes, 0, 4)
+                    'put encrypted behind
                     Dim encrypted() As Byte = AESCrypt.Encrypt(preSend, c.MD5_Password)
                     ms.Write(encrypted, 0, encrypted.Length)
-                    UdpClientManager.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
-                    'DebugOutputBytes(ms.ToArray, "Post Send: ")
+                    'send to client
+                    'UdpClientManager.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
+                    DebugOutputBytes(ms.ToArray, "New Send: ")
                 End Using
                 'Debug.WriteLine("sent to: " & c.Username)
             Next
+            'clear client's requests
             request.UCRC.Clear()
+            'Delete this request
             CMD0Requests.Remove(request.Key)
         End If
 

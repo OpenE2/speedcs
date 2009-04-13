@@ -44,6 +44,7 @@ Public Class clsAESCrypt
     End Function
 
     Public Function Encrypt(ByVal toEncrypt() As Byte, ByVal passMD5() As Byte) As Byte()
+        'DebugOutputBytes(passMD5, "MD5 ")
         Dim rDel As New RijndaelManaged()
         rDel.Key = passMD5
         rDel.Mode = CipherMode.ECB

@@ -226,6 +226,7 @@ Public Class clsCache
                     'DebugOutputBytes(OriginalRaw, "Origi:")
                     'DebugOutputBytes(ms.ToArray, "Plain:")
                     ret = ms.ToArray
+
                 End Using
                 Return ret
             Catch ex As Exception
@@ -236,7 +237,7 @@ Public Class clsCache
         End Function
 
         Public Function ReturnAsCryptedArray(ByVal key() As Byte) As Byte()
-
+            'DebugOutputBytes(_ReturnAsByteArray, "Plain:")
             Dim CryptBytes As Byte()
             Using ms As New IO.MemoryStream(_ReturnAsByteArray, 0, _ReturnAsByteArray.Length)
                 CryptBytes = AESCrypt.Encrypt(ms.ToArray, key)
@@ -566,8 +567,8 @@ Public Class clsCache
                             If Not c Is Nothing Then
                                 _ecm.CMD = types.CMDType.ECMResponse
                                 'Hack: hier einkommentiern stellt die alte Funktion wieder her
-                                'UdpClientManager.SendUDPMessage(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
-
+                                UdpClientManager.SendUDPMessage(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
+                                DebugOutputBytes(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), "legacy: ")
                                 Dim adressData As String = c.SourceIp & ":" & c.SourcePort
                                 adressData = adressData.PadRight(22)
 
