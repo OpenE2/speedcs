@@ -207,6 +207,7 @@ Public Class clsCMDManager
         Public CW() As Byte
         Public PlainMessage() As Byte
         Public Key As UInt32
+        Public IncomingTimeStamp As Long = Environment.TickCount
 
         Private _Length As Byte
         Public ReadOnly Property Length() As Byte
@@ -268,10 +269,10 @@ Public Class clsCMDManager
                 iPROVID = BitConverter.ToUInt32(PROVID, 0)
                 iPROVID = CUInt(Math.Floor(iPROVID / 65536) + 65536 * (iPROVID And 65535)) 'Convert to Little Endian
             End Using
-            Using ms As New MemoryStream
-                ms.Write(PlainCMD0Message, 16, _Length)
-                CW = ms.ToArray
-            End Using
+            'Using ms As New MemoryStream
+            '    ms.Write(PlainCMD0Message, 16, _Length)
+            '    CW = ms.ToArray
+            'End Using
         End Sub
     End Class
 
@@ -347,6 +348,21 @@ Public Class clsCMDManager
                     ms.Write(encrypted, 0, encrypted.Length)
                     'send to client
                     UdpClientManager.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
+
+                    Dim adressData As String = c.SourceIp & ":" & c.SourcePort
+                    adressData = adressData.PadRight(22)
+
+                    Output("C " _
+                           & adressData _
+                           & c.Username _
+                           & " [" _
+                           & Hex(request.iCAID).PadLeft(4, CChar("0")) _
+                           & ":" _
+                           & Hex(request.iSRVID).PadLeft(4, CChar("0")) _
+                           & "] found in " _
+                           & Environment.TickCount - request.IncomingTimeStamp _
+                           & "ms", LogDestination.none, LogSeverity.info, ConsoleColor.Green)
+
                     'DebugOutputBytes(c.MD5_Password, c.Username & " -n: ")
                     'DebugOutputBytes(ms.ToArray, "New Send: ")
                 End Using
