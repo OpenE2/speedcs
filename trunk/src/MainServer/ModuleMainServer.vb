@@ -171,6 +171,8 @@ Module ModuleMainServer
                             logColor = ConsoleColor.DarkYellow
                             strClientResult = "Broadcast: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
 
+                            CacheManager.CMD1Answers.Add(plainRequest)
+
                         Case types.CMDType.CascadingRequest  'Request cascading (MPCS Source)
                             strClientResult = "Command 03 Cascading?!"
 

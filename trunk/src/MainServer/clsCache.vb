@@ -569,10 +569,10 @@ Public Class clsCache
                                 'Hack: hier einkommentiern stellt die alte Funktion wieder her
                                 'UdpClientManager.SendUDPMessage(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
                                 'DebugOutputBytes(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), "legacy: ")
-                                Dim adressData As String = c.SourceIp & ":" & c.SourcePort
-                                adressData = adressData.PadRight(22)
+                                'Dim adressData As String = c.SourceIp & ":" & c.SourcePort
+                                'adressData = adressData.PadRight(22)
 
-                                Output("C " & adressData & c.Username & " " & _ecm.ServiceName & " found in " & Environment.TickCount - req.IncomingTimeStamp & "ms", LogDestination.none, LogSeverity.info, ConsoleColor.Green)
+                                'Output("C " & adressData & c.Username & " " & _ecm.ServiceName & " found in " & Environment.TickCount - req.IncomingTimeStamp & "ms", LogDestination.none, LogSeverity.info, ConsoleColor.Green)
                             End If
                             'Debug.WriteLine("Remove sendet request")
                             Try
