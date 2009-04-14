@@ -510,6 +510,7 @@ Public Class clsCMDManager
                 If .Active And .SendBroadcasts Then
                     Using ms As New MemoryStream
                         Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
+                        Array.Reverse(ucrcbytes)
                         ms.Write(ucrcbytes, 0, 4)
                         Dim encrypted() As Byte = AESCrypt.Encrypt(Broadcast2send, .MD5_Password)
                         ms.Write(encrypted, 0, encrypted.Length)
