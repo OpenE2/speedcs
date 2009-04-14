@@ -421,7 +421,12 @@ Public Class clsCMDManager
             t.Priority = Threading.ThreadPriority.BelowNormal
             t.Start()
         ElseIf type = types.CMDType.BroadCastResponse Then
-            BroadcastCandidates.Add(answer.Key, Date.Now)
+            If BroadcastCandidates.ContainsKey(answer.Key) Then
+
+            Else
+                BroadcastCandidates.Add(answer.Key, Date.Now)
+            End If
+
         End If
 
     End Sub

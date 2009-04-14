@@ -169,7 +169,7 @@ Module ModuleMainServer
                             'ecm.CMD = &H99
                             'Cache.Answers.Add(ecm)
                             'logColor = ConsoleColor.DarkYellow
-                            'strClientResult = "Broadcast: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
+                            strClientResult = "Broadcast: '" & sClient.Username & "' []"
 
                             CacheManager.CMD1Answers.Add(plainRequest)
 
