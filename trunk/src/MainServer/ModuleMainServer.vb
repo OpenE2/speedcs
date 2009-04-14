@@ -140,24 +140,24 @@ Module ModuleMainServer
                 If sClient.active Then
                     plainRequest = AESCrypt.Decrypt(message.ByteMessage, sClient.MD5_Password)
 
-                    Dim ecm As New clsCache.clsCAMDMsg
+                    'Dim ecm As New clsCache.clsCAMDMsg
 
-                    ecm.IncomingTimeStamp = Environment.TickCount
-                    ecm.LoadFromPlainByteArray(plainRequest)
-                    ecm.usercrc = message.ucrcInt
-                    ecm.SenderUCRC = sClient.ucrc
-                    ecm.SourceIP = message.sourceIP
-                    ecm.SourcePort = message.sourcePort
-                    strClientResult &= ecm.CMD
+                    'ecm.IncomingTimeStamp = Environment.TickCount
+                    'ecm.LoadFromPlainByteArray(plainRequest)
+                    'ecm.usercrc = message.ucrcInt
+                    'ecm.SenderUCRC = sClient.ucrc
+                    'ecm.SourceIP = message.sourceIP
+                    'ecm.SourcePort = message.sourcePort
+                    'strClientResult &= ecm.CMD
 
-                    Select Case ecm.CMD
+                    Select Case CType(plainRequest(0), types.CMDType)
 
                         Case types.CMDType.ECMRequest  'Request
-                            If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
-                            If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
-                            sClient.lastrequest = Now
-                            Cache.Requests.Add(ecm)
-                            strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
+                            'If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
+                            'If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
+                            'sClient.lastrequest = Now
+                            'Cache.Requests.Add(ecm)
+                            'strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
                             If Not emmSender.Enabled Then emmSender.Start()
 
 
@@ -167,9 +167,9 @@ Module ModuleMainServer
 
                         Case types.CMDType.BroadCastResponse  'Answer
                             'ecm.CMD = &H99
-                            Cache.Answers.Add(ecm)
-                            logColor = ConsoleColor.DarkYellow
-                            strClientResult = "Broadcast: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
+                            'Cache.Answers.Add(ecm)
+                            'logColor = ConsoleColor.DarkYellow
+                            'strClientResult = "Broadcast: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
 
                             CacheManager.CMD1Answers.Add(plainRequest)
 
@@ -210,7 +210,7 @@ Module ModuleMainServer
 
                             'WriteEcmToFile(plainRequest, "CMD6: ")
                         Case Else
-                            strClientResult = "Command " & Hex(ecm.CMD)
+                            'strClientResult = "Command " & Hex(ecm.CMD)
 
                     End Select
                 Else
@@ -221,20 +221,21 @@ Module ModuleMainServer
             Else
                 logColor = ConsoleColor.Red
                 strClientResult = "Illegal access or Account locked"
+                DebugOutputBytes(message.ucrc, "Illegal: " & message.ucrcInt & " ")
             End If
 
-            Dim strLog As String = ""
+            If Not strClientResult = "undefined" Then
+                Dim strLog As String = ""
+                strLog &= strClientResult
 
-            strLog &= strClientResult
+                Dim adressData As String = message.sourceIP & ":" & message.sourcePort
+                adressData = adressData.PadRight(22)
 
-            Dim adressData As String = message.sourceIP & ":" & message.sourcePort
-            adressData = adressData.PadRight(22)
-
-            Output("C " & adressData & _
-                             strLog, LogDestination.none, _
-                                                LogSeverity.info, _
-                                                logColor)
-
+                Output("C " & adressData & _
+                                 strLog, LogDestination.none, _
+                                                    LogSeverity.info, _
+                                                    logColor)
+            End If
         Catch ex As Exception
             Output("Client incoming: " & ex.Message & vbCrLf & ex.StackTrace, LogDestination.file)
         End Try
@@ -264,20 +265,20 @@ Module ModuleMainServer
                     CacheManager.CMD1Answers.Add(plainRequest)
                     Debug.WriteLine("Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
 
-                    Dim found As Boolean = False
-                    For Each sr As clsCache.clsCAMDMsg In Cache.ServerRequests
-                        If sr.ClientPID.Equals(ecm.ClientPID) Then
-                            ecm.ecmcrc = sr.ecmcrc
-                        End If
-                    Next
-                    For Each answer As clsCache.clsCAMDMsg In Cache.Answers
-                        If answer.ClientPID.Equals(ecm.ClientPID) Then
-                            found = True
-                            Exit For
-                        End If
-                    Next
+                    'Dim found As Boolean = False
+                    'For Each sr As clsCache.clsCAMDMsg In Cache.ServerRequests
+                    '    If sr.ClientPID.Equals(ecm.ClientPID) Then
+                    '        ecm.ecmcrc = sr.ecmcrc
+                    '    End If
+                    'Next
+                    'For Each answer As clsCache.clsCAMDMsg In Cache.Answers
+                    '    If answer.ClientPID.Equals(ecm.ClientPID) Then
+                    '        found = True
+                    '        Exit For
+                    '    End If
+                    'Next
 
-                    If Not found Then Cache.Answers.Add(ecm)
+                    'If Not found Then Cache.Answers.Add(ecm)
                     strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
 
                     
