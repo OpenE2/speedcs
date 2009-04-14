@@ -382,7 +382,7 @@ Public Class clsCache
                             If Not udpserv.serverobject.deniedSRVIDCAID.Contains(_ecm.srvidcaid) Then
                                 Debug.WriteLine("Send to " & udpserv.serverobject.Hostname & ":" & udpserv.serverobject.Port & " with " & udpserv.serverobject.Username & ":" & udpserv.serverobject.Password & "-" & udpserv.serverobject.IP & "-" & _ecm.SourceIP)
                                 _ecm.usercrc = udpserv.serverobject.UCRC
-                                udpserv.SendUDPMessage(_ecm.ReturnAsCryptedArray(udpserv.serverobject.MD5_Password), Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
+                                'udpserv.SendUDPMessage(_ecm.ReturnAsCryptedArray(udpserv.serverobject.MD5_Password), Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
                             End If
                         End If
                     Catch ex As Exception

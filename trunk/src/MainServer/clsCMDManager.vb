@@ -8,6 +8,10 @@ Public Class clsCMDManager
     End Sub
 
     Public BroadcastQueue As New Queue(Of Byte())
+    Public Request1stLevelQueue As New Queue(Of clsCMD0Request)
+    Public Request2ndLevelQueue As New Queue(Of clsCMD0Request)
+    Public BroadcastCandidates As New SortedList(Of UInt32, Date)
+
 
 #Region "CMD 1 Answers"
 
@@ -173,6 +177,7 @@ Public Class clsCMDManager
                     Debug.WriteLine("Renew CMD1")
                 End If
             Else
+                'a.GetFromCMD1Message(PlainCMD1Message)
                 Me.Add(a.Key, a)
                 Debug.WriteLine("Add CMD1")
                 Threading.Thread.Sleep(50)
@@ -226,6 +231,7 @@ Public Class clsCMDManager
         Public iCAID As UInt16
         Public SRVID() As Byte
         Public iSRVID As UInt16
+        Public srvidcaid As UInt32
         Public PROVID() As Byte
         Public iPROVID As UInt32
         Public CW() As Byte
@@ -288,6 +294,11 @@ Public Class clsCMDManager
                 iCAID = CUShort(Math.Floor(iCAID / 256) + 256 * (iCAID And 255)) 'Convert to Little Endian
             End Using
             Using ms As New MemoryStream
+                ms.Write(PlainCMD0Message, 8, 4)
+                srvidcaid = BitConverter.ToUInt32(ms.ToArray, 0)
+                srvidcaid = CUInt(Math.Floor(srvidcaid / 65536) + 65536 * (srvidcaid And 65535))
+            End Using
+            Using ms As New MemoryStream
                 ms.Write(PlainCMD0Message, 12, 4)
                 PROVID = ms.ToArray
                 iPROVID = BitConverter.ToUInt32(PROVID, 0)
@@ -314,6 +325,7 @@ Public Class clsCMDManager
                     Me(a.Key).UCRC.Add(sUCRC, PlainCMD0Message)
                 End If
             End SyncLock
+            RaiseEvent GotCommand(a, types.CMDType.ECMRequest)
         End Sub
 
         Public Sub Clean()
@@ -407,6 +419,8 @@ Public Class clsCMDManager
             Dim t As New Threading.Thread(AddressOf SendBroadcast)
             t.Priority = Threading.ThreadPriority.BelowNormal
             t.Start()
+        ElseIf type = types.CMDType.BroadCastResponse Then
+            BroadcastCandidates.Add(answer.Key, Date.Now)
         End If
 
     End Sub
@@ -414,8 +428,75 @@ Public Class clsCMDManager
     Private Sub IncommingCMD0(ByVal sender As Object, ByVal type As types.CMDType)
         Dim request As clsCMD0Request = TryCast(sender, clsCMD0Request)
         If Me.CMD1Answers.ContainsKey(request.Key) Then
-            IncommingCMD1(Me.CMD1Answers(request.Key), types.CMDType.EMMResponse)
+            If Not Me.CMD1Answers(request.Key).Dead Then
+                IncommingCMD1(Me.CMD1Answers(request.Key), types.CMDType.EMMResponse)
+                Exit Sub
+            Else
+                Debug.WriteLine("Answer is Dead")
+            End If
         End If
+
+        If BroadcastCandidates.ContainsKey(request.Key) Then
+            If DateDiff(DateInterval.Second, Date.Now, BroadcastCandidates(request.Key)) < 10 Then
+                'we should wait here n * 100 mS for an broadcast
+                SyncLock Request2ndLevelQueue
+                    Request2ndLevelQueue.Enqueue(request)
+                    Debug.WriteLine("Enqueue to L2")
+                End SyncLock
+            Else
+                SyncLock Request1stLevelQueue
+                    Request1stLevelQueue.Enqueue(request)
+                    Debug.WriteLine("Enqueue to L1a")
+                End SyncLock
+            End If
+        Else
+            SyncLock Request1stLevelQueue
+                Request1stLevelQueue.Enqueue(request)
+                Debug.WriteLine("Enqueue to L1b")
+            End SyncLock
+        End If
+
+
+        Dim t As New Threading.Thread(AddressOf Order2Servers)
+        t.Priority = Threading.ThreadPriority.BelowNormal
+        t.Start()
+    End Sub
+
+    Private Sub Order2Servers()
+        SyncLock Request1stLevelQueue
+            While Request1stLevelQueue.Count > 0
+                Send2Servers(Request1stLevelQueue.Dequeue)
+            End While
+        End SyncLock
+
+        SyncLock Request2ndLevelQueue
+            While Request2ndLevelQueue.Count > 0
+                Send2Servers(Request2ndLevelQueue.Dequeue)
+            End While
+        End SyncLock
+    End Sub
+
+    Private Sub Send2Servers(ByVal request As clsCMD0Request)
+        For Each udpserv As clsUDPIO In udpServers
+            With udpserv.serverobject
+
+                If .Active _
+                    And .SendECMs _
+                    And Not .deniedSRVIDCAID.Contains(request.srvidcaid) _
+                    And Not request.UCRC.ContainsKey(.UCRC) Then
+
+                    Using ms As New MemoryStream
+                        Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
+                        Array.Reverse(ucrcbytes)
+                        ms.Write(ucrcbytes, 0, 4)
+                        Dim encrypted() As Byte = AESCrypt.Encrypt(request.PlainMessage, .MD5_Password)
+                        ms.Write(encrypted, 0, encrypted.Length)
+                        udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
+                    End Using
+
+                End If
+            End With
+        Next
     End Sub
 
     Private Sub SendBroadcast()
@@ -425,7 +506,7 @@ Public Class clsCMDManager
         End SyncLock
         For Each udpserv As clsUDPIO In udpServers
             With udpserv.serverobject
-                If .SendBroadcasts And .Active Then
+                If .Active And .SendBroadcasts Then
                     Using ms As New MemoryStream
                         Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
                         ms.Write(ucrcbytes, 0, 4)
@@ -433,8 +514,8 @@ Public Class clsCMDManager
                         ms.Write(encrypted, 0, encrypted.Length)
                         udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(.IP), .Port)
                     End Using
+                    Debug.WriteLine("Broadcast to " & .Hostname & ":" & .Port)
                 End If
-                Debug.WriteLine("Broadcast to " & .Hostname & ":" & .Port)
             End With 'udpserv.serverobject
         Next
     End Sub
