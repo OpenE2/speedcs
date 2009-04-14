@@ -44,7 +44,7 @@ Public Class clsCMDManager
 
         Public ReadOnly Property Dead() As Boolean
             Get
-                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 5 Then
+                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 4 Then
                     Return True
                 Else
                     Return False
@@ -174,12 +174,12 @@ Public Class clsCMDManager
                     Me(a.Key).ReNew(PlainCMD1Message)
                     'Threading.Thread.Sleep(50)
                     RaiseEvent GotCommand(Me(a.Key), Me(a.Key).CMD)
-                    Debug.WriteLine("Renew CMD1")
+                    Debug.WriteLine("Renew CMD1" & a.CMD)
                 End If
             Else
                 'a.GetFromCMD1Message(PlainCMD1Message)
                 Me.Add(a.Key, a)
-                Debug.WriteLine("Add CMD1")
+                Debug.WriteLine("Add CMD1" & a.CMD)
                 'Threading.Thread.Sleep(50)
                 RaiseEvent GotCommand(a, a.CMD)
             End If
@@ -406,7 +406,7 @@ Public Class clsCMDManager
                 'Debug.WriteLine("sent to: " & c.Username)
             Next
             'clear client's requests
-            'request.UCRC.Clear()
+            request.UCRC.Clear()
             'Delete this request
             CMD0Requests.Remove(request.Key)
         Else
@@ -436,6 +436,7 @@ Public Class clsCMDManager
         If Me.CMD1Answers.ContainsKey(request.Key) Then
             If Not Me.CMD1Answers(request.Key).Dead Then
                 IncommingCMD1(Me.CMD1Answers(request.Key), types.CMDType.EMMResponse)
+                Debug.WriteLine("Answer age: " & Me.CMD1Answers(request.Key).Age)
                 Exit Sub
             Else
                 Debug.WriteLine("Answer is Dead")
@@ -443,7 +444,7 @@ Public Class clsCMDManager
         End If
 
         If BroadcastCandidates.ContainsKey(request.Key) Then
-            If DateDiff(DateInterval.Second, Date.Now, BroadcastCandidates(request.Key)) < 10 Then
+            If DateDiff(DateInterval.Second, Date.Now, BroadcastCandidates(request.Key)) < 7 Then
                 'we should wait here n * 100 mS for an broadcast
                 SyncLock Request2ndLevelQueue
                     Request2ndLevelQueue.Enqueue(request)
