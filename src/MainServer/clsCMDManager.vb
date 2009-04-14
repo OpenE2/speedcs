@@ -172,7 +172,7 @@ Public Class clsCMDManager
             If Me.ContainsKey(a.Key) Then
                 If Me(a.Key).Dead Then
                     Me(a.Key).ReNew(PlainCMD1Message)
-                    Threading.Thread.Sleep(50)
+                    'Threading.Thread.Sleep(50)
                     RaiseEvent GotCommand(Me(a.Key), Me(a.Key).CMD)
                     Debug.WriteLine("Renew CMD1")
                 End If
@@ -180,7 +180,7 @@ Public Class clsCMDManager
                 'a.GetFromCMD1Message(PlainCMD1Message)
                 Me.Add(a.Key, a)
                 Debug.WriteLine("Add CMD1")
-                Threading.Thread.Sleep(50)
+                'Threading.Thread.Sleep(50)
                 RaiseEvent GotCommand(a, a.CMD)
             End If
             'End SyncLock
@@ -321,11 +321,12 @@ Public Class clsCMDManager
             SyncLock Me
                 If Not Me.ContainsKey(a.Key) Then
                     Me.Add(a.Key, a)
+                    RaiseEvent GotCommand(a, types.CMDType.ECMRequest)
                 Else
                     Me(a.Key).UCRC.Add(sUCRC, PlainCMD0Message)
                 End If
             End SyncLock
-            RaiseEvent GotCommand(a, types.CMDType.ECMRequest)
+
         End Sub
 
         Public Sub Clean()
