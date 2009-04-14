@@ -592,30 +592,30 @@ Public Class clsCache
             End Sub
 
             Public Sub Broadcast()
-                Try
+                'Try
 
-                    For Each udpserv As clsUDPIO In udpServers
-                        If udpserv.serverobject.SendBroadcasts And udpserv.serverobject.Active Then
-                            If _ecm.CMD = types.CMDType.ECMResponse Then
-                                'Broadcast Message muss nun kopiert werden,
-                                'da sie manchmal durch den RedirectAnswers.Start Thread verändert wird
-                                Dim BroadcastMsg As clsCache.clsCAMDMsg = _ecm.Clone
-                                BroadcastMsg.usercrc = udpserv.serverobject.UCRC
-                                BroadcastMsg.CMD = types.CMDType.BroadCastResponse
-                                udpserv.SendUDPMessage(BroadcastMsg.ReturnAsCryptedArray(udpserv.serverobject.MD5_Password), _
-                                                       Net.IPAddress.Parse(udpserv.serverobject.IP), _
-                                                       udpserv.serverobject.Port)
+                '    For Each udpserv As clsUDPIO In udpServers
+                '        If udpserv.serverobject.SendBroadcasts And udpserv.serverobject.Active Then
+                '            If _ecm.CMD = types.CMDType.ECMResponse Then
+                '                'Broadcast Message muss nun kopiert werden,
+                '                'da sie manchmal durch den RedirectAnswers.Start Thread verändert wird
+                '                Dim BroadcastMsg As clsCache.clsCAMDMsg = _ecm.Clone
+                '                BroadcastMsg.usercrc = udpserv.serverobject.UCRC
+                '                BroadcastMsg.CMD = types.CMDType.BroadCastResponse
+                '                'udpserv.SendUDPMessage(BroadcastMsg.ReturnAsCryptedArray(udpserv.serverobject.MD5_Password), _
+                '                '                       Net.IPAddress.Parse(udpserv.serverobject.IP), _
+                '                '                       udpserv.serverobject.Port)
 
-                                Debug.WriteLine("Broadcast to " & udpserv.serverobject.Hostname & ":" & udpserv.serverobject.Port)
-                            Else
-                                Debug.WriteLine("Avoid Loop " & udpserv.serverobject.Hostname)
-                            End If
-                        End If
-                    Next
+                '                'Debug.WriteLine("Broadcast to " & udpserv.serverobject.Hostname & ":" & udpserv.serverobject.Port)
+                '            Else
+                '                Debug.WriteLine("Avoid Loop " & udpserv.serverobject.Hostname)
+                '            End If
+                '        End If
+                '    Next
 
-                Catch ex As Exception
-                    Output("BroadCast() " & ex.Message & vbCrLf & ex.StackTrace)
-                End Try
+                'Catch ex As Exception
+                '    Output("BroadCast() " & ex.Message & vbCrLf & ex.StackTrace)
+                'End Try
             End Sub
 
         End Class
