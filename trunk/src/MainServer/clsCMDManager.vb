@@ -7,6 +7,8 @@ Public Class clsCMDManager
         AddHandler CMD0Requests.GotCommand, AddressOf IncommingCMD0
     End Sub
 
+    Public BroadcastQueue As New Queue(Of Byte())
+
 #Region "CMD 1 Answers"
 
     Public Class clsCMD1Answer
@@ -90,6 +92,28 @@ Public Class clsCMDManager
                 CW = ms.ToArray
             End Using
         End Sub
+
+        Public Function TransformCMD0toCMD66Message() As Byte()
+            Using ms As New MemoryStream
+                ms.WriteByte(&H66)
+                ms.WriteByte(_Length)
+                ms.WriteByte(&H0)
+                ms.WriteByte(&H0)
+                ms.Write(_ECM_CRC, 0, 4)
+                ms.Write(SRVID, 0, 2)
+                ms.Write(CAID, 0, 2)
+                ms.Write(PROVID, 0, 4)
+                ms.WriteByte(&H0)
+                ms.WriteByte(&H0)
+                ms.WriteByte(&H0)
+                ms.WriteByte(&H0)
+                ms.Write(CW, 0, _Length)
+                While Not ms.Length = 48
+                    ms.WriteByte(&HFF)
+                End While
+                TransformCMD0toCMD66Message = ms.ToArray
+            End Using
+        End Function
 
         Private Function GetECMFromStructure() As Byte()
             Using ms As New MemoryStream
@@ -376,6 +400,15 @@ Public Class clsCMDManager
             Debug.WriteLine("No Request found")
         End If
 
+        If Not type = types.CMDType.BroadCastResponse Then
+            SyncLock BroadcastQueue
+                BroadcastQueue.Enqueue(answer.TransformCMD0toCMD66Message)
+            End SyncLock
+            Dim t As New Threading.Thread(AddressOf SendBroadcast)
+            t.Priority = Threading.ThreadPriority.BelowNormal
+            t.Start()
+        End If
+
     End Sub
 
     Private Sub IncommingCMD0(ByVal sender As Object, ByVal type As types.CMDType)
@@ -383,5 +416,26 @@ Public Class clsCMDManager
         If Me.CMD1Answers.ContainsKey(request.Key) Then
             IncommingCMD1(Me.CMD1Answers(request.Key), types.CMDType.EMMResponse)
         End If
+    End Sub
+
+    Private Sub SendBroadcast()
+        Dim Broadcast2send() As Byte
+        SyncLock BroadcastQueue
+            Broadcast2send = BroadcastQueue.Dequeue
+        End SyncLock
+        For Each udpserv As clsUDPIO In udpServers
+            With udpserv.serverobject
+                If .SendBroadcasts And .Active Then
+                    Using ms As New MemoryStream
+                        Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
+                        ms.Write(ucrcbytes, 0, 4)
+                        Dim encrypted() As Byte = AESCrypt.Encrypt(Broadcast2send, .MD5_Password)
+                        ms.Write(encrypted, 0, encrypted.Length)
+                        udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(.IP), .Port)
+                    End Using
+                End If
+                Debug.WriteLine("Broadcast to " & .Hostname & ":" & .Port)
+            End With 'udpserv.serverobject
+        Next
     End Sub
 End Class
