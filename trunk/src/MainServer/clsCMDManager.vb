@@ -1,4 +1,6 @@
 ﻿Imports System.IO
+Imports System.Text
+Imports SpeedCS.types
 
 Public Class clsCMDManager
 
@@ -44,7 +46,7 @@ Public Class clsCMDManager
 
         Public ReadOnly Property Dead() As Boolean
             Get
-                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 4 Then
+                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 3 Then
                     Return True
                 Else
                     Return False
@@ -166,24 +168,37 @@ Public Class clsCMDManager
         Public Event GotCommand(ByVal sender As Object, ByVal command As types.CMDType)
 
         Public Overloads Sub Add(ByVal PlainCMD1Message() As Byte)
-            'Me.Clean()
+            Dim cmd As CMDType = CType(PlainCMD1Message(0), CMDType)
+
+            Me.Clean()
             'SyncLock Me
-            Dim a As New clsCMD1Answer(PlainCMD1Message)
-            If Me.ContainsKey(a.Key) Then
-                If Me(a.Key).Dead Then
-                    Me(a.Key).ReNew(PlainCMD1Message)
+            If cmd = CMDType.ECMResponse Then
+                Dim a As New clsCMD1Answer(PlainCMD1Message)
+
+                If Me.ContainsKey(a.Key) Then
+                    If Me(a.Key).Dead Then
+                        Me(a.Key).ReNew(PlainCMD1Message)
+                        'Threading.Thread.Sleep(50)
+                        RaiseEvent GotCommand(Me(a.Key), Me(a.Key).CMD)
+                        Debug.WriteLine("Renew CMD1" & a.CMD)
+                    End If
+                Else
+                    'a.GetFromCMD1Message(PlainCMD1Message)
+                    Me.Add(a.Key, a)
+                    Debug.WriteLine("Add CMD1" & a.CMD)
                     'Threading.Thread.Sleep(50)
-                    RaiseEvent GotCommand(Me(a.Key), Me(a.Key).CMD)
-                    Debug.WriteLine("Renew CMD1" & a.CMD)
+                    RaiseEvent GotCommand(a, a.CMD)
                 End If
-            Else
-                'a.GetFromCMD1Message(PlainCMD1Message)
-                Me.Add(a.Key, a)
-                Debug.WriteLine("Add CMD1" & a.CMD)
-                'Threading.Thread.Sleep(50)
-                RaiseEvent GotCommand(a, a.CMD)
-            End If
-            'End SyncLock
+                'End SyncLock
+            ElseIf cmd = CMDType.BroadCastResponse Then
+                Dim a As New clsCMD1Answer(PlainCMD1Message)
+                If Not Me.ContainsKey(a.Key) Then
+                    Me.Add(a.Key, a)
+                    Output("Add CMD1 from Broadcast" & Hex(a.iCAID) & ":" & Hex(a.iSRVID), LogDestination.none, LogSeverity.info, ConsoleColor.DarkRed)
+                    'Threading.Thread.Sleep(50)
+                    RaiseEvent GotCommand(a, a.CMD)
+                End If
+                End If
 
         End Sub
 
@@ -489,17 +504,27 @@ Public Class clsCMDManager
 
                 If .Active _
                     And .SendECMs _
-                    And Not .deniedSRVIDCAID.Contains(request.srvidcaid) _
                     And Not request.UCRC.ContainsKey(.UCRC) Then
 
-                    Using ms As New MemoryStream
-                        Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
-                        Array.Reverse(ucrcbytes)
-                        ms.Write(ucrcbytes, 0, 4)
-                        Dim encrypted() As Byte = AESCrypt.Encrypt(request.PlainMessage, .MD5_Password)
-                        ms.Write(encrypted, 0, encrypted.Length)
-                        udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
-                    End Using
+                    If Not .deniedSRVIDCAID.Contains(request.srvidcaid) Then
+                        Using ms As New MemoryStream
+                            Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
+                            Array.Reverse(ucrcbytes)
+                            ms.Write(ucrcbytes, 0, 4)
+                            Dim encrypted() As Byte = AESCrypt.Encrypt(request.PlainMessage, .MD5_Password)
+                            ms.Write(encrypted, 0, encrypted.Length)
+                            udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
+                        End Using
+                    Else
+                        Dim sb As New StringBuilder
+                        Dim output() As Byte = BitConverter.GetBytes(request.srvidcaid)
+                        sb.Append(Hex(Output(0)).PadLeft(2, CChar("0")))
+                        sb.Append(Hex(Output(1)).PadLeft(2, CChar("0")))
+                        sb.Append(":")
+                        sb.Append(Hex(Output(2)).PadLeft(2, CChar("0")))
+                        sb.Append(Hex(Output(3)).PadLeft(2, CChar("0")))
+                        Debug.WriteLine(sb.ToString & " suppressed for " & .Username)
+                    End If
 
                 End If
             End With

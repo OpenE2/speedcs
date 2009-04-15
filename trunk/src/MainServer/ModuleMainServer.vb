@@ -169,9 +169,9 @@ Module ModuleMainServer
                             'ecm.CMD = &H99
                             'Cache.Answers.Add(ecm)
                             'logColor = ConsoleColor.DarkYellow
-                            strClientResult = "Broadcast: '" & sClient.Username & "' []"
+                            'strClientResult = "Broadcast: '" & sClient.Username & "' []"
 
-                            'CacheManager.CMD1Answers.Add(plainRequest)
+                            CacheManager.CMD1Answers.Add(plainRequest)
 
                         Case types.CMDType.CascadingRequest  'Request cascading (MPCS Source)
                             strClientResult = "Command 03 Cascading?!"
