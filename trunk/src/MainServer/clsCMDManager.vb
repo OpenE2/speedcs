@@ -132,7 +132,7 @@ Public Class clsCMDManager
         End Function
 
         Public Function TransformCMD0toCMD1Message(ByVal CMD0Message() As Byte) As Byte()
-            If CMD0Message(0) = CMDType.ECMRequest Then
+            If CMD0Message(0) = CMDType.ECMRequest Or CMD0Message(0) = CMDType.sCSRequest Then
                 Using ms As New MemoryStream
                     ms.WriteByte(&H1)
                     ms.WriteByte(_Length)
@@ -498,12 +498,29 @@ Public Class clsCMDManager
     End Sub
 
     Private Sub Send2Servers(ByVal request As clsCMD0Request)
+        Dim canceled As Boolean = False
+
         For Each udpserv As clsUDPIO In udpServers
             With udpserv.serverobject
 
+                'Avoid Re-Request
+                If request.CMD = CMDType.sCSRequest Then
+                    If .IsSCS Then
+                        canceled = True
+                    Else
+                        canceled = False
+                        request.PlainMessage(0) = &H0 'Make a normal CMD05 for non sCS Servers
+                    End If
+                Else
+                    If .IsSCS Then
+                        request.PlainMessage(0) = &H55 'Make a special Request for sCS Severs
+                    End If
+                End If
+
                 If .Active _
                     And .SendECMs _
-                    And Not request.UCRC.ContainsKey(.UCRC) Then
+                    And Not request.UCRC.ContainsKey(.UCRC) _
+                    And Not canceled Then
 
                     If Not .deniedSRVIDCAID.Contains(request.srvidcaid) Then
                         Using ms As New MemoryStream
@@ -517,11 +534,11 @@ Public Class clsCMDManager
                     Else
                         Dim sb As New StringBuilder
                         Dim output() As Byte = BitConverter.GetBytes(request.srvidcaid)
-                        sb.Append(Hex(Output(0)).PadLeft(2, CChar("0")))
-                        sb.Append(Hex(Output(1)).PadLeft(2, CChar("0")))
+                        sb.Append(Hex(output(0)).PadLeft(2, CChar("0")))
+                        sb.Append(Hex(output(1)).PadLeft(2, CChar("0")))
                         sb.Append(":")
-                        sb.Append(Hex(Output(2)).PadLeft(2, CChar("0")))
-                        sb.Append(Hex(Output(3)).PadLeft(2, CChar("0")))
+                        sb.Append(Hex(output(2)).PadLeft(2, CChar("0")))
+                        sb.Append(Hex(output(3)).PadLeft(2, CChar("0")))
                         Debug.WriteLine(sb.ToString & " suppressed for " & .Username)
                     End If
 
