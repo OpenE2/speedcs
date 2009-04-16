@@ -1,4 +1,6 @@
-﻿' 
+﻿Imports SpeedCS.types
+
+' 
 '	Copyright (C) 2009 SpeedCS Team
 '	http://streamboard.gmc.to
 '
@@ -150,9 +152,9 @@ Module ModuleMainServer
                     'ecm.SourcePort = message.sourcePort
                     'strClientResult &= ecm.CMD
 
-                    Select Case CType(plainRequest(0), types.CMDType)
+                    Select Case CType(plainRequest(0), CMDType)
 
-                        Case types.CMDType.ECMRequest  'Request
+                        Case CMDType.ECMRequest  'Request
                             'If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
                             'If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
                             'sClient.lastrequest = Now
@@ -165,52 +167,31 @@ Module ModuleMainServer
                             Debug.WriteLine("Requests in cachemanager: " & CacheManager.CMD0Requests.Count)
 
 
-                        Case types.CMDType.BroadCastResponse  'Answer
-                            'ecm.CMD = &H99
-                            'Cache.Answers.Add(ecm)
-                            'logColor = ConsoleColor.DarkYellow
-                            'strClientResult = "Broadcast: '" & sClient.Username & "' []"
-
+                        Case CMDType.BroadCastResponse  'Answer
                             CacheManager.CMD1Answers.Add(plainRequest)
 
-                        Case types.CMDType.CascadingRequest  'Request cascading (MPCS Source)
+                        Case CMDType.CascadingRequest  'Request cascading (MPCS Source)
                             strClientResult = "Command 03 Cascading?!"
 
-                        Case types.CMDType.NotFound  'Fehler ?!
+                        Case CMDType.NotFound  'Fehler ?!
                             strClientResult = "Command 44 Error"
 
-                        Case types.CMDType.CRCError  'CRC false
+                        Case CMDType.CRCError  'CRC false
                             strClientResult = "CRC of ECM wrong!"
 
-                        Case types.CMDType.EMMResponse
-                            strClientResult = "Emm Client Response"
-                            logColor = ConsoleColor.Cyan
-
+                        Case CMDType.EMMResponse
                             Dim emmCRC As UInt32 = BitConverter.ToUInt32(plainRequest, 4)
 
-                            SyncLock emmSender
-                                If Not emmStack.ContainsKey(emmCRC) Then emmStack.Add(emmCRC, plainRequest)
-                            End SyncLock
+                            With emmStack
+                                SyncLock emmStack
+                                    If Not .ContainsKey(emmCRC) Then .Add(emmCRC, plainRequest)
+                                End SyncLock
+                                logColor = ConsoleColor.Cyan
+                                strClientResult = "Emm Client Response. Stack: " & .Count
+                            End With
 
-                            strClientResult = "Emm Client Response. Stack: " & emmStack.Count
-                            'For Each udpserv As clsUDPIO In udpServers
-                            '    If sClient.AUServer = udpserv.serverobject.IP And udpserv.serverobject.SendEMMs Then
-                            '        Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(udpserv.serverobject.Username))
-                            '        Array.Reverse(ucrcbytes)
-                            '        Using ms As New MemoryStream
-                            '            ms.Write(ucrcbytes, 0, 4)
-                            '            Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, udpserv.serverobject.MD5_Password)
-                            '            ms.Write(eArr, 0, eArr.Length)
-                            '            udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(udpserv.serverobject.IP)), udpserv.serverobject.Port)
-                            '        End Using
-                            '    End If
-                            'Next
-
-
-
-                            'WriteEcmToFile(plainRequest, "CMD6: ")
                         Case Else
-                            'strClientResult = "Command " & Hex(ecm.CMD)
+                            strClientResult = "Command " & Hex(plainRequest(0))
 
                     End Select
                 Else
@@ -232,9 +213,10 @@ Module ModuleMainServer
                 adressData = adressData.PadRight(22)
 
                 Output("C " & adressData & _
-                                 strLog, LogDestination.none, _
-                                                    LogSeverity.info, _
-                                                    logColor)
+                                    strLog, _
+                                    LogDestination.none, _
+                                    LogSeverity.info, _
+                                    logColor)
             End If
         Catch ex As Exception
             Output("Client incoming: " & ex.Message & vbCrLf & ex.StackTrace, LogDestination.file)
@@ -258,10 +240,10 @@ Module ModuleMainServer
 
             Select Case ecm.CMD
 
-                Case types.CMDType.ECMRequest 'Request
+                Case CMDType.ECMRequest 'Request
                     strServerResult = " CMD00 shouldn't be here"
 
-                Case types.CMDType.ECMResponse  'Answer
+                Case CMDType.ECMResponse  'Answer
                     CacheManager.CMD1Answers.Add(plainRequest)
                     Debug.WriteLine("Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
 
@@ -281,9 +263,7 @@ Module ModuleMainServer
                     'If Not found Then Cache.Answers.Add(ecm)
                     strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
 
-                    
-
-                Case types.CMDType.EMMRequest  'Emm Zeuchs
+                Case CMDType.EMMRequest  'Emm Zeuchs
                     logColor = ConsoleColor.Cyan
                     If Not plainRequest(1) = &H70 Then
                         strServerResult = "EMM Request CMD05"
@@ -297,7 +277,9 @@ Module ModuleMainServer
                                         ms.Write(ucrcbytes, 0, 4)
                                         Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, c.MD5_Password)
                                         ms.Write(eArr, 0, eArr.Length)
-                                        UdpClientManager.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
+                                        UdpClientManager.SendUDPMessage(ms.ToArray, _
+                                                                        Net.IPAddress.Parse(CStr(c.SourceIp)), _
+                                                                        c.SourcePort)
                                         c.AUisActiveSince = Date.Now
                                     End Using
                                 End If
@@ -308,13 +290,16 @@ Module ModuleMainServer
                         strServerResult = "EMM Request CMD05 suppressed "
                     End If
 
-                Case types.CMDType.NotFound  'Fehler timeout/notfound whatever?!
+                Case CMDType.NotFound  'Fehler timeout/notfound whatever?!
                     strServerResult = "not found CMD44"
-                    If Not mSender.serverobject.deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
-                        mSender.serverobject.deniedSRVIDCAID.Add(ecm.srvidcaid)
-                    End If
+                    With mSender.serverobject
+                        If Not .deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
+                            .deniedSRVIDCAID.Add(ecm.srvidcaid)
+                        End If
+                    End With
                     DebugOutputBytes(plainRequest, "CMD44: ")
-                Case types.CMDType.CRCError  'CRC false
+
+                Case CMDType.CRCError  'CRC false
                     strServerResult = "CRC of ECM wrong!"
 
                 Case Else
@@ -345,24 +330,21 @@ Module ModuleMainServer
         SyncLock emmStack
             If emmStack.Count > 0 Then
                 Dim emm() As Byte = TryCast(emmStack(emmStack.Keys(0)), Byte())
-                If Not emm Is Nothing Then
-                    'Debug.WriteLine("Emm Stack full")
-                    For Each udpserv As clsUDPIO In udpServers
-                        If udpserv.serverobject.SendEMMs Then
-                            Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(udpserv.serverobject.Username))
+                For Each udpserv As clsUDPIO In udpServers
+                    With udpserv.serverobject
+                        If .SendEMMs Then
+                            Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(.Username))
                             Array.Reverse(ucrcbytes)
                             Using ms As New MemoryStream
                                 ms.Write(ucrcbytes, 0, 4)
-                                Dim eArr() As Byte = AESCrypt.Encrypt(emm, udpserv.serverobject.MD5_Password)
+                                Dim eArr() As Byte = AESCrypt.Encrypt(emm, .MD5_Password)
                                 ms.Write(eArr, 0, eArr.Length)
-                                udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(udpserv.serverobject.IP)), udpserv.serverobject.Port)
+                                udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(.IP)), .Port)
                             End Using
                         End If
-                    Next
-                    emmStack.RemoveAt(0)
-                Else
-                    'Debug.WriteLine("Emm is nothing")
-                End If
+                    End With 'udpserv.serverobject
+                Next
+                emmStack.RemoveAt(0)
             Else
                 'Debug.WriteLine("Emm Stack empty")
             End If
