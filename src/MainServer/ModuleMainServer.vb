@@ -166,6 +166,8 @@ Module ModuleMainServer
                             CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt)
                             Debug.WriteLine("Requests in cachemanager: " & CacheManager.CMD0Requests.Count)
 
+                        Case CMDType.sCSRequest 'Special sCS Request
+                            CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt)
 
                         Case CMDType.BroadCastResponse  'Answer
                             CacheManager.CMD1Answers.Add(plainRequest)

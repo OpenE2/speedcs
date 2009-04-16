@@ -31,6 +31,7 @@ Namespace types
         CascadingRequest = &H3
         EMMRequest = &H5
         EMMResponse = &H6
+        sCSRequest = &H55
         NotFound = &H44
         BroadCastResponse = &H66
         CRCError = &H99
