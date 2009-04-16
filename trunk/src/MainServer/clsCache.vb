@@ -1,5 +1,5 @@
 ﻿Imports System.IO
-
+Imports SpeedCS.types
 ' 
 '	Copyright (C) 2009 SpeedCS Team
 '	http://streamboard.gmc.to
@@ -24,7 +24,7 @@
 Public Class clsCache
 
     Public Class clsCAMDMsg
-        Public CMD As types.CMDType
+        Public CMD As CMDType
         Public _ecmcrc As UInt32
         Public CHID As UInt16
         Public PRID As UInt32
@@ -121,24 +121,24 @@ Public Class clsCache
                 reqtime = Now
                 Select Case plainRequest(0)
                     Case &H0
-                        CMD = types.CMDType.ECMRequest
+                        CMD = CMDType.ECMRequest
                     Case &H1
-                        CMD = types.CMDType.ECMResponse
+                        CMD = cMDType.ECMResponse
                     Case &H3
-                        CMD = types.CMDType.CascadingRequest
+                        CMD = CMDType.CascadingRequest
                     Case &H5
-                        CMD = types.CMDType.EMMRequest
+                        CMD = CMDType.EMMRequest
                     Case &H6
-                        CMD = types.CMDType.EMMResponse
+                        CMD = CMDType.EMMResponse
                     Case &H44
-                        CMD = types.CMDType.NotFound
+                        CMD = CMDType.NotFound
                     Case &H66
-                        CMD = types.CMDType.BroadCastResponse
+                        CMD = CMDType.BroadCastResponse
                     Case &H99
-                        CMD = types.CMDType.CRCError
+                        CMD = CMDType.CRCError
                     Case Else
                         Debug.WriteLine("unknown command: " & Hex(plainRequest(0)))
-                        CMD = types.CMDType.unknown
+                        CMD = CMDType.unknown
                 End Select
                 unknown = BitConverter.ToUInt16(plainRequest, 6 - 4)
                 unknown = CUShort(Math.Floor(unknown / 256) + 256 * (unknown And 255)) 'Convert to Little Endian
@@ -172,7 +172,7 @@ Public Class clsCache
                 Using ms As New IO.MemoryStream(plainRequest, 24 - 4, plainRequest(5 - 4))
                     data = ms.ToArray
                     If Not BitConverter.ToUInt32(crc32.ComputeHash(ms.ToArray), 0).Equals(BitConverter.ToUInt32(plainRequest, 8 - 4)) Then
-                        CMD = types.CMDType.CRCError  'CRC false
+                        CMD = CMDType.CRCError  'CRC false
                     End If
                     ms.Close()
                 End Using
@@ -476,10 +476,10 @@ Public Class clsCache
             'value.raw2 = e.raw
             'End If
             'Next
-            Dim isBroadcast As Boolean = value.CMD = types.CMDType.BroadCastResponse
+            Dim isBroadcast As Boolean = value.CMD = CMDType.BroadCastResponse
 
             If isBroadcast Then
-                value.CMD = types.CMDType.ECMResponse
+                value.CMD = CMDType.ECMResponse
             End If
             SyncLock List
                 List.Add(value)
@@ -565,7 +565,7 @@ Public Class clsCache
                             _ecm.usercrc = req.usercrc
                             _ecm.ClientPID = req.ClientPID
                             If Not c Is Nothing Then
-                                _ecm.CMD = types.CMDType.ECMResponse
+                                _ecm.CMD = CMDType.ECMResponse
                                 'Hack: hier einkommentiern stellt die alte Funktion wieder her
                                 'UdpClientManager.SendUDPMessage(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
                                 'DebugOutputBytes(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), "legacy: ")

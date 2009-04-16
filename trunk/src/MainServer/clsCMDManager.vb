@@ -21,7 +21,7 @@ Public Class clsCMDManager
         Private _ECM_CRC() As Byte
         Private _CreateDate As Date
 
-        Public CMD As types.CMDType
+        Public CMD As CMDType
         Public CAID() As Byte
         Public iCAID As UInt16
         Public SRVID() As Byte
@@ -63,7 +63,7 @@ Public Class clsCMDManager
         End Sub
 
         Public Sub GetFromCMD1Message(ByVal PlainCMD1Message() As Byte)
-            CMD = CType(PlainCMD1Message(0), types.CMDType)
+            CMD = CType(PlainCMD1Message(0), CMDType)
             _Length = PlainCMD1Message(1)
             _CreateDate = Date.Now
             Using ms As New MemoryStream
@@ -132,7 +132,7 @@ Public Class clsCMDManager
         End Function
 
         Public Function TransformCMD0toCMD1Message(ByVal CMD0Message() As Byte) As Byte()
-            If CMD0Message(0) = types.CMDType.ECMRequest Then
+            If CMD0Message(0) = CMDType.ECMRequest Then
                 Using ms As New MemoryStream
                     ms.WriteByte(&H1)
                     ms.WriteByte(_Length)
@@ -165,7 +165,7 @@ Public Class clsCMDManager
 
     Public Class clsCMD1Answers
         Inherits SortedList(Of UInt32, clsCMD1Answer)
-        Public Event GotCommand(ByVal sender As Object, ByVal command As types.CMDType)
+        Public Event GotCommand(ByVal sender As Object, ByVal command As CMDType)
 
         Public Overloads Sub Add(ByVal PlainCMD1Message() As Byte)
             Dim cmd As CMDType = CType(PlainCMD1Message(0), CMDType)
@@ -194,7 +194,7 @@ Public Class clsCMDManager
                 Dim a As New clsCMD1Answer(PlainCMD1Message)
                 If Not Me.ContainsKey(a.Key) Then
                     Me.Add(a.Key, a)
-                    Output("Add CMD1 from Broadcast" & Hex(a.iCAID) & ":" & Hex(a.iSRVID), LogDestination.none, LogSeverity.info, ConsoleColor.DarkRed)
+                    Output("Add CMD1 from Broadcast" & Hex(a.iCAID) & ":" & Hex(a.iSRVID), LogDestination.none, LogSeverity.info, ConsoleColor.DarkYellow)
                     'Threading.Thread.Sleep(50)
                     RaiseEvent GotCommand(a, a.CMD)
                 End If
@@ -241,7 +241,7 @@ Public Class clsCMDManager
         Private _CreateDate As Date
 
         Public UCRC As New SortedList(Of UInt32, Byte())
-        Public CMD As types.CMDType
+        Public CMD As CMDType
         Public CAID() As Byte
         Public iCAID As UInt16
         Public SRVID() As Byte
@@ -283,7 +283,7 @@ Public Class clsCMDManager
         End Sub
 
         Public Sub GetFromCMD0Message(ByVal PlainCMD0Message() As Byte, ByVal sUCRC As UInt32)
-            CMD = CType(PlainCMD0Message(0), types.CMDType)
+            CMD = CType(PlainCMD0Message(0), CMDType)
             PlainMessage = PlainCMD0Message
             _Length = PlainCMD0Message(1)
             _CreateDate = Date.Now
@@ -328,7 +328,7 @@ Public Class clsCMDManager
 
     Public Class clsCMD0Requests
         Inherits SortedList(Of UInt32, clsCMD0Request)
-        Public Event GotCommand(ByVal sender As Object, ByVal command As types.CMDType)
+        Public Event GotCommand(ByVal sender As Object, ByVal command As CMDType)
 
         Public Overloads Sub Add(ByVal PlainCMD0Message() As Byte, ByVal sUCRC As UInt32)
             Me.Clean()
@@ -336,7 +336,7 @@ Public Class clsCMDManager
             SyncLock Me
                 If Not Me.ContainsKey(a.Key) Then
                     Me.Add(a.Key, a)
-                    RaiseEvent GotCommand(a, types.CMDType.ECMRequest)
+                    RaiseEvent GotCommand(a, CMDType.ECMRequest)
                 Else
                     Me(a.Key).UCRC.Add(sUCRC, PlainCMD0Message)
                 End If
@@ -375,8 +375,7 @@ Public Class clsCMDManager
 #End Region
 
 
-    'Hack: aktueller Clientsender - funzt nicht (client sagt "wrong Password")
-    Private Sub IncommingCMD1(ByVal sender As Object, ByVal type As types.CMDType)
+    Private Sub IncommingCMD1(ByVal sender As Object, ByVal type As CMDType)
         Dim answer As clsCMD1Answer = TryCast(sender, clsCMD1Answer)
         Dim request As clsCMD0Request = TryCast(CMD0Requests(answer.Key), clsCMD0Request)
         'If one of the request matches
@@ -428,14 +427,14 @@ Public Class clsCMDManager
             Debug.WriteLine("No Request found")
         End If
 
-        If Not type = types.CMDType.BroadCastResponse Then
+        If Not type = CMDType.BroadCastResponse Then
             SyncLock BroadcastQueue
                 BroadcastQueue.Enqueue(answer.TransformCMD0toCMD66Message)
             End SyncLock
             Dim t As New Threading.Thread(AddressOf SendBroadcast)
             t.Priority = Threading.ThreadPriority.BelowNormal
             t.Start()
-        ElseIf type = types.CMDType.BroadCastResponse Then
+        ElseIf type = CMDType.BroadCastResponse Then
             If BroadcastCandidates.ContainsKey(answer.Key) Then
 
             Else
@@ -446,11 +445,11 @@ Public Class clsCMDManager
 
     End Sub
 
-    Private Sub IncommingCMD0(ByVal sender As Object, ByVal type As types.CMDType)
+    Private Sub IncommingCMD0(ByVal sender As Object, ByVal type As CMDType)
         Dim request As clsCMD0Request = TryCast(sender, clsCMD0Request)
         If Me.CMD1Answers.ContainsKey(request.Key) Then
             If Not Me.CMD1Answers(request.Key).Dead Then
-                IncommingCMD1(Me.CMD1Answers(request.Key), types.CMDType.EMMResponse)
+                IncommingCMD1(Me.CMD1Answers(request.Key), CMDType.EMMResponse)
                 Debug.WriteLine("Answer age: " & Me.CMD1Answers(request.Key).Age)
                 Exit Sub
             Else
