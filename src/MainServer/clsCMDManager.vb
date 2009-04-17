@@ -527,6 +527,10 @@ Public Class clsCMDManager
                     End If
                 End If
 
+                If request.SenderIP = .IP Then
+                    canceled = True
+                End If
+
                 If .Active _
                     And .SendECMs _
                     And Not request.UCRC.ContainsKey(.UCRC) _
