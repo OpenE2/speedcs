@@ -9,7 +9,7 @@ Public Class clsCMDManager
         AddHandler CMD0Requests.GotCommand, AddressOf IncommingCMD0
     End Sub
 
-    Public BroadcastQueue As New Queue(Of Byte())
+    Public BroadcastQueue As New Queue(Of clsCMD1Answer)
     Public Request1stLevelQueue As New Queue(Of clsCMD0Request)
     Public Request2ndLevelQueue As New Queue(Of clsCMD0Request)
     Public BroadcastCandidates As New SortedList(Of UInt32, Date)
@@ -30,6 +30,9 @@ Public Class clsCMDManager
         Public iPROVID As UInt32
         Public CW() As Byte
         Public Key As UInt32
+
+        Public SenderIP As String
+        Public senderPort As Integer
 
         Private _Length As Byte
         Public ReadOnly Property Length() As Byte
@@ -54,8 +57,10 @@ Public Class clsCMDManager
             End Get
         End Property
 
-        Public Sub New(ByVal PlainCMD1Message() As Byte)
+        Public Sub New(ByVal PlainCMD1Message() As Byte, ByVal IP As String, ByVal port As Integer)
             GetFromCMD1Message(PlainCMD1Message)
+            Me.SenderIP = IP
+            Me.senderPort = port
         End Sub
 
         Public Sub ReNew(ByVal PlainCMD1Message() As Byte)
@@ -167,13 +172,13 @@ Public Class clsCMDManager
         Inherits SortedList(Of UInt32, clsCMD1Answer)
         Public Event GotCommand(ByVal sender As Object, ByVal command As CMDType)
 
-        Public Overloads Sub Add(ByVal PlainCMD1Message() As Byte)
+        Public Overloads Sub Add(ByVal PlainCMD1Message() As Byte, ByVal IP As String, ByVal port As Integer)
             Dim cmd As CMDType = CType(PlainCMD1Message(0), CMDType)
 
             Me.Clean()
             'SyncLock Me
             If cmd = CMDType.ECMResponse Then
-                Dim a As New clsCMD1Answer(PlainCMD1Message)
+                Dim a As New clsCMD1Answer(PlainCMD1Message, IP, port)
 
                 If Me.ContainsKey(a.Key) Then
                     If Me(a.Key).Dead Then
@@ -191,14 +196,14 @@ Public Class clsCMDManager
                 End If
                 'End SyncLock
             ElseIf cmd = CMDType.BroadCastResponse Then
-                Dim a As New clsCMD1Answer(PlainCMD1Message)
+                Dim a As New clsCMD1Answer(PlainCMD1Message, IP, port)
                 If Not Me.ContainsKey(a.Key) Then
                     Me.Add(a.Key, a)
                     Output("Add CMD1 from Broadcast" & Hex(a.iCAID) & ":" & Hex(a.iSRVID), LogDestination.none, LogSeverity.info, ConsoleColor.DarkYellow)
                     'Threading.Thread.Sleep(50)
                     RaiseEvent GotCommand(a, a.CMD)
                 End If
-                End If
+            End If
 
         End Sub
 
@@ -254,6 +259,9 @@ Public Class clsCMDManager
         Public Key As UInt32
         Public IncomingTimeStamp As Long = Environment.TickCount
 
+        Public SenderIP As String
+        Public senderPort As Integer
+
         Private _Length As Byte
         Public ReadOnly Property Length() As Byte
             Get
@@ -277,7 +285,7 @@ Public Class clsCMDManager
             End Get
         End Property
 
-        Public Sub New(ByVal PlainCMD0Message() As Byte, ByVal sUCRC As UInt32)
+        Public Sub New(ByVal PlainCMD0Message() As Byte, ByVal sUCRC As UInt32, ByVal IP As String, ByVal port As Integer)
             GetFromCMD0Message(PlainCMD0Message, sUCRC)
             'Me.UCRC.Add(sUCRC, Nothing)
         End Sub
@@ -330,9 +338,9 @@ Public Class clsCMDManager
         Inherits SortedList(Of UInt32, clsCMD0Request)
         Public Event GotCommand(ByVal sender As Object, ByVal command As CMDType)
 
-        Public Overloads Sub Add(ByVal PlainCMD0Message() As Byte, ByVal sUCRC As UInt32)
+        Public Overloads Sub Add(ByVal PlainCMD0Message() As Byte, ByVal sUCRC As UInt32, ByVal IP As String, ByVal port As Integer)
             Me.Clean()
-            Dim a As New clsCMD0Request(PlainCMD0Message, sUCRC)
+            Dim a As New clsCMD0Request(PlainCMD0Message, sUCRC, IP, port)
             SyncLock Me
                 If Not Me.ContainsKey(a.Key) Then
                     Me.Add(a.Key, a)
@@ -378,58 +386,60 @@ Public Class clsCMDManager
     Private Sub IncommingCMD1(ByVal sender As Object, ByVal type As CMDType)
         Dim answer As clsCMD1Answer = TryCast(sender, clsCMD1Answer)
         Dim request As clsCMD0Request = TryCast(CMD0Requests(answer.Key), clsCMD0Request)
-        'If one of the request matches
-        Debug.WriteLine("Answer Action")
         If Not request Is Nothing Then
-            Debug.WriteLine("Request found")
-            'for each requesting client in this request
-            For Each ucrc As UInt32 In request.UCRC.Keys
-                'transform cmd0 to cmd1 with client's cmd 0
-                Dim preSend() As Byte = answer.TransformCMD0toCMD1Message(request.UCRC(ucrc))
-                'DebugOutputBytes(preSend, "Pre Send: ")
-                'find clientdata by ucrc
-                Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(ucrc)
-                Using ms As New MemoryStream
-                    'built ucrc header
-                    Dim ucrcbytes() As Byte = BitConverter.GetBytes(ucrc)
-                    Array.Reverse(ucrcbytes)
-                    ms.Write(ucrcbytes, 0, 4)
-                    'put encrypted behind
-                    Dim encrypted() As Byte = AESCrypt.Encrypt(preSend, c.MD5_Password)
-                    ms.Write(encrypted, 0, encrypted.Length)
-                    'send to client
-                    UdpClientManager.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
+            'If one of the request matches
+            Debug.WriteLine("Answer Action")
+            If Not request Is Nothing Then
+                Debug.WriteLine("Request found")
+                'for each requesting client in this request
+                For Each ucrc As UInt32 In request.UCRC.Keys
+                    'transform cmd0 to cmd1 with client's cmd 0
+                    Dim preSend() As Byte = answer.TransformCMD0toCMD1Message(request.UCRC(ucrc))
+                    'DebugOutputBytes(preSend, "Pre Send: ")
+                    'find clientdata by ucrc
+                    Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(ucrc)
+                    Using ms As New MemoryStream
+                        'built ucrc header
+                        Dim ucrcbytes() As Byte = BitConverter.GetBytes(ucrc)
+                        Array.Reverse(ucrcbytes)
+                        ms.Write(ucrcbytes, 0, 4)
+                        'put encrypted behind
+                        Dim encrypted() As Byte = AESCrypt.Encrypt(preSend, c.MD5_Password)
+                        ms.Write(encrypted, 0, encrypted.Length)
+                        'send to client
+                        UdpClientManager.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
 
-                    Dim adressData As String = c.SourceIp & ":" & c.SourcePort
-                    adressData = adressData.PadRight(22)
+                        Dim adressData As String = c.SourceIp & ":" & c.SourcePort
+                        adressData = adressData.PadRight(22)
 
-                    Output("C " _
-                           & adressData _
-                           & c.Username _
-                           & " [" _
-                           & Hex(request.iCAID).PadLeft(4, CChar("0")) _
-                           & ":" _
-                           & Hex(request.iSRVID).PadLeft(4, CChar("0")) _
-                           & "] found in " _
-                           & Environment.TickCount - request.IncomingTimeStamp _
-                           & "ms", LogDestination.none, LogSeverity.info, ConsoleColor.Green)
+                        Output("C " _
+                               & adressData _
+                               & c.Username _
+                               & " [" _
+                               & Hex(request.iCAID).PadLeft(4, CChar("0")) _
+                               & ":" _
+                               & Hex(request.iSRVID).PadLeft(4, CChar("0")) _
+                               & "] found in " _
+                               & Environment.TickCount - request.IncomingTimeStamp _
+                               & "ms", LogDestination.none, LogSeverity.info, ConsoleColor.Green)
 
-                    'DebugOutputBytes(c.MD5_Password, c.Username & " -n: ")
-                    'DebugOutputBytes(ms.ToArray, "New Send: ")
-                End Using
-                'Debug.WriteLine("sent to: " & c.Username)
-            Next
-            'clear client's requests
-            request.UCRC.Clear()
-            'Delete this request
-            CMD0Requests.Remove(request.Key)
-        Else
-            Debug.WriteLine("No Request found")
+                        'DebugOutputBytes(c.MD5_Password, c.Username & " -n: ")
+                        'DebugOutputBytes(ms.ToArray, "New Send: ")
+                    End Using
+                    'Debug.WriteLine("sent to: " & c.Username)
+                Next
+                'clear client's requests
+                request.UCRC.Clear()
+                'Delete this request
+                CMD0Requests.Remove(request.Key)
+            Else
+                Debug.WriteLine("No Request found")
+            End If
         End If
 
         If Not type = CMDType.BroadCastResponse Then
             SyncLock BroadcastQueue
-                BroadcastQueue.Enqueue(answer.TransformCMD0toCMD66Message)
+                BroadcastQueue.Enqueue(answer)
             End SyncLock
             Dim t As New Threading.Thread(AddressOf SendBroadcast)
             t.Priority = Threading.ThreadPriority.BelowNormal
@@ -548,18 +558,18 @@ Public Class clsCMDManager
     End Sub
 
     Private Sub SendBroadcast()
-        Dim Broadcast2send() As Byte
+        Dim Broadcast2send As clsCMD1Answer
         SyncLock BroadcastQueue
             Broadcast2send = BroadcastQueue.Dequeue
         End SyncLock
         For Each udpserv As clsUDPIO In udpServers
             With udpserv.serverobject
-                If .Active And .SendBroadcasts Then
+                If .Active And .SendBroadcasts And Not Broadcast2send.SenderIP = .IP Then
                     Using ms As New MemoryStream
                         Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
                         Array.Reverse(ucrcbytes)
                         ms.Write(ucrcbytes, 0, 4)
-                        Dim encrypted() As Byte = AESCrypt.Encrypt(Broadcast2send, .MD5_Password)
+                        Dim encrypted() As Byte = AESCrypt.Encrypt(Broadcast2send.TransformCMD0toCMD66Message, .MD5_Password)
                         ms.Write(encrypted, 0, encrypted.Length)
                         udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(.IP), .Port)
                     End Using
