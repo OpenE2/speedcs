@@ -163,14 +163,14 @@ Module ModuleMainServer
                             If Not emmSender.Enabled Then emmSender.Start()
 
 
-                            CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt)
+                            CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
                             Debug.WriteLine("Requests in cachemanager: " & CacheManager.CMD0Requests.Count)
 
                         Case CMDType.sCSRequest 'Special sCS Request
-                            CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt)
+                            CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
 
                         Case CMDType.BroadCastResponse  'Answer
-                            CacheManager.CMD1Answers.Add(plainRequest)
+                            CacheManager.CMD1Answers.Add(plainRequest, message.sourceIP, message.sourcePort)
 
                         Case CMDType.CascadingRequest  'Request cascading (MPCS Source)
                             strClientResult = "Command 03 Cascading?!"
@@ -246,7 +246,7 @@ Module ModuleMainServer
                     strServerResult = " CMD00 shouldn't be here"
 
                 Case CMDType.ECMResponse  'Answer
-                    CacheManager.CMD1Answers.Add(plainRequest)
+                    CacheManager.CMD1Answers.Add(plainRequest, message.sourceIP, message.sourcePort)
                     Debug.WriteLine("Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
 
                     'Dim found As Boolean = False
