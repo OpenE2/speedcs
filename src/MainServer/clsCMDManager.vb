@@ -199,7 +199,8 @@ Public Class clsCMDManager
                 Dim a As New clsCMD1Answer(PlainCMD1Message, IP, port)
                 If Not Me.ContainsKey(a.Key) Then
                     Me.Add(a.Key, a)
-                    Output("Add CMD1 from Broadcast" & Hex(a.iCAID) & ":" & Hex(a.iSRVID), LogDestination.none, LogSeverity.info, ConsoleColor.DarkYellow)
+                    Dim IDs As String = Hex(a.iCAID).PadLeft(4, CChar("0")) & ":" & Hex(a.iSRVID).PadLeft(4, CChar("0"))
+                    Output("Add CMD1 from Broadcast [" & IDs & "] " & Services.GetServiceInfo(IDs).Name, LogDestination.none, LogSeverity.info, ConsoleColor.DarkYellow)
                     'Threading.Thread.Sleep(50)
                     RaiseEvent GotCommand(a, a.CMD)
                 End If

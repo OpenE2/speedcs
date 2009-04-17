@@ -367,6 +367,8 @@ Module ModuleMainServer
                 udpClient.CloseUDPConnection()
                 udpClient.OpenUDPConnection()
             End If
+        Else
+
         End If
         Output("ServerIncomingError: " & message & " ->try restart", LogDestination.file)
     End Sub
@@ -375,11 +377,14 @@ Module ModuleMainServer
         Dim udpClient As clsUDPIO = TryCast(sender, clsUDPIO)
         If Not udpClient Is Nothing Then
             If Not udpClient.endWasRequested And udpClient.hadError Then
+                Output("ClientIncomingError: " & message & " -> try restart " & udpClient.serverobject.Hostname, LogDestination.none)
                 udpClient.CloseUDPConnection()
                 udpClient.OpenUDPConnection()
             End If
+        Else
+            Output("ClientIncomingError: " & message & " -> UDP Client destroyed " & udpClient.serverobject.Hostname, LogDestination.none)
         End If
-        Output("ClientIncomingError: " & message & " ->try restart", LogDestination.file)
+
     End Sub
 
 #End Region

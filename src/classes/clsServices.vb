@@ -22,6 +22,28 @@
 Imports System.IO
 Imports System.Text.RegularExpressions
 
+Public Class clsService
+    Public ID As String
+    Public Provider As String
+    Public Name As String
+    Public Type As String
+    Public Comment As String
+    Public Sub New(ByVal value As String)
+        If Not value Is Nothing Then
+            Dim arr() As String = value.Split(CChar("|"))
+            Me.Provider = arr(0)
+            Me.Name = arr(1)
+            Me.Type = arr(2)
+            Me.Comment = arr(3)
+        Else
+            Me.Provider = "unknown"
+            Me.Name = "unknown"
+            Me.Type = "unknown"
+            Me.Comment = "unknown"
+        End If
+    End Sub
+End Class
+
 Public Class clsServices
     Public serviceIDList As SortedList
 
@@ -66,4 +88,10 @@ Public Class clsServices
 
     End Sub
 
+    Public Function GetServiceInfo(ByVal key As String) As clsService
+
+        GetServiceInfo = New clsService(TryCast(serviceIDList(key), String))
+        GetServiceInfo.ID = key
+
+    End Function
 End Class
