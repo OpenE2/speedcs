@@ -155,6 +155,7 @@ End Class
 
 #Region "Clients"
 
+
     Public Class clsClient
         Public active As Boolean = False
         Private _Username As String = ""
@@ -176,6 +177,8 @@ End Class
         Public lastrequest As Date = Now
         Public AUServer As String = String.Empty
         Public AUisActiveSince As Date
+        Public AUSerial As UInt32
+
         Private _ucrc As UInteger
         Public ReadOnly Property ucrc() As UInteger
             Get

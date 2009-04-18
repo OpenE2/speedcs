@@ -269,43 +269,63 @@ Module ModuleMainServer
                     logColor = ConsoleColor.Cyan
                     If Not plainRequest(1) = &H70 Then
                         strServerResult = "EMM Request CMD05"
+
+                        Dim serialAlreadyAssigned As Boolean = False
                         Dim c As clsSettingsClients.clsClient
+
+                        Dim cardSerial As UInt32 = BitConverter.ToUInt32(plainRequest, 40)
                         For Each c In CfgClients.Clients
-                            If c.AUServer = message.sourceIP And c.active Then
-                                If DateDiff(DateInterval.Minute, c.AUisActiveSince, Date.Now) > 30 Then
-                                    Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(c.Username))
-                                    Array.Reverse(ucrcbytes)
-                                    Using ms As New MemoryStream
-                                        ms.Write(ucrcbytes, 0, 4)
-                                        Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, c.MD5_Password)
-                                        ms.Write(eArr, 0, eArr.Length)
-                                        UdpClientManager.SendUDPMessage(ms.ToArray, _
-                                                                        Net.IPAddress.Parse(CStr(c.SourceIp)), _
-                                                                        c.SourcePort)
-                                        c.AUisActiveSince = Date.Now
-                                    End Using
-                                End If
-                            End If
+                            If c.AUSerial = cardSerial Then serialAlreadyAssigned = True
+                            strServerResult = "EMM Request CMD05 already assigned"
+                            Exit For
                         Next
+
+                        If Not serialAlreadyAssigned Then
+
+                            For Each c In CfgClients.Clients
+                                If c.AUServer = message.sourceIP And c.active Then
+                                    If c.AUSerial = 0 Then
+                                        c.AUSerial = cardSerial
+                                        If DateDiff(DateInterval.Minute, c.AUisActiveSince, Date.Now) > 30 Then
+                                            Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(c.Username))
+                                            Array.Reverse(ucrcbytes)
+                                            Using ms As New MemoryStream
+                                                ms.Write(ucrcbytes, 0, 4)
+                                                Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, c.MD5_Password)
+                                                ms.Write(eArr, 0, eArr.Length)
+                                                UdpClientManager.SendUDPMessage(ms.ToArray, _
+                                                                                Net.IPAddress.Parse(CStr(c.SourceIp)), _
+                                                                                c.SourcePort)
+                                                c.AUisActiveSince = Date.Now
+                                            End Using
+                                        End If
+                                        strServerResult = "EMM Request CMD05 assigned to '" & c.Username & "'"
+                                        Exit For
+                                    End If ' Not c.AUSerial = 0
+
+                                End If
+                            Next
+                        End If
                         'WriteEcmToFile(plainRequest, "CMD5: ")
+
                     Else
                         strServerResult = "EMM Request CMD05 suppressed "
                     End If
 
                 Case CMDType.NotFound  'Fehler timeout/notfound whatever?!
-                    strServerResult = "not found CMD44"
-                    With mSender.serverobject
-                        If Not .deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
-                            .deniedSRVIDCAID.Add(ecm.srvidcaid)
-                        End If
-                    End With
-                    DebugOutputBytes(plainRequest, "CMD44: ")
+                        strServerResult = "not found CMD44"
+                        With mSender.serverobject
+                            If Not .deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
+                                .deniedSRVIDCAID.Add(ecm.srvidcaid)
+                            End If
+                        End With
+                        DebugOutputBytes(plainRequest, "CMD44: ")
 
                 Case CMDType.CRCError  'CRC false
-                    strServerResult = "CRC of ECM wrong!"
+                        strServerResult = "CRC of ECM wrong!"
 
                 Case Else
-                    strServerResult = "Command " & ecm.CMD
+                        strServerResult = "Command " & ecm.CMD
 
             End Select
 

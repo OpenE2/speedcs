@@ -347,7 +347,11 @@ Public Class clsCMDManager
                     Me.Add(a.Key, a)
                     RaiseEvent GotCommand(a, CMDType.ECMRequest)
                 Else
-                    Me(a.Key).UCRC.Add(sUCRC, PlainCMD0Message)
+                    If Not Me(a.Key).UCRC.ContainsKey(sUCRC) Then
+                        Me(a.Key).UCRC.Add(sUCRC, PlainCMD0Message)
+                    Else
+                        Me(a.Key).UCRC(sUCRC) = PlainCMD0Message
+                    End If
                 End If
             End SyncLock
 
