@@ -53,6 +53,8 @@ Module ModuleMain
             'Loading Configs
             CfgGlobals.Load()
             CfgClients.Load()
+            CfgClients.Clients.ResetAU()
+
             CfgCardServers.Load()
             CfgCardReaders.Load()
 
