@@ -504,7 +504,7 @@ Public Class clsCMDManager
                 Send2Servers(Request1stLevelQueue.Dequeue)
             End While
         End SyncLock
-
+        Threading.Thread.Sleep(200) 'L2 have to wait 4 Broadcast
         SyncLock Request2ndLevelQueue
             While Request2ndLevelQueue.Count > 0
                 Send2Servers(Request2ndLevelQueue.Dequeue)
@@ -524,7 +524,7 @@ Public Class clsCMDManager
                         canceled = True
                     Else
                         canceled = False
-                        request.PlainMessage(0) = &H0 'Make a normal CMD05 for non sCS Servers
+                        request.PlainMessage(0) = &H0 'Make a normal CMD0 for non sCS Servers
                     End If
                 Else
                     If .IsSCS Then
