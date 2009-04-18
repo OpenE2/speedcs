@@ -292,6 +292,13 @@ End Class
 
         End Function
 
+        Public Sub ResetAU()
+            For Each c As clsClient In Me.List
+                c.AUSerial = 0
+                c.AUisActiveSince = New Date
+            Next
+        End Sub
+
         'Private _ucrc2Find As UInteger
         'Public Function FindByUCRC(ByVal ucrc As UInteger) As clsClient
         '    _ucrc2Find = ucrc
