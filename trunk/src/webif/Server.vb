@@ -458,12 +458,17 @@ Public Class Server
                                                         If s.SendEMMs.Equals(CBool(l(1))) = False Then
                                                             s.SendEMMs = CBool(l(1))
                                                             settingschanged = True
-                                                        End If
-                                                    Case "sendecms"
-                                                        If s.SendECMs.Equals(CBool(l(1))) = False Then
-                                                            s.SendECMs = CBool(l(1))
-                                                            settingschanged = True
-                                                        End If
+                                                    End If
+                                                Case "IsSCS"
+                                                    If s.IsSCS.Equals(CBool(l(1))) = False Then
+                                                        s.IsSCS = CBool(l(1))
+                                                        settingschanged = True
+                                                    End If
+                                                Case "sendecms"
+                                                    If s.SendECMs.Equals(CBool(l(1))) = False Then
+                                                        s.SendECMs = CBool(l(1))
+                                                        settingschanged = True
+                                                    End If
                                                     Case "remove"
                                                         deleteEntry = True
                                                         settingschanged = True
@@ -526,7 +531,18 @@ Public Class Server
                                 If Not s.SendEMMs Then sMessage.Append("selected ")
                                 sMessage.Append("value='0'>No</option>")
                                 sMessage.Append("</select>")
-                                sMessage.Append("</td></tr>")
+                            sMessage.Append("</td></tr>")
+
+                            sMessage.Append("<tr><td>Server is SpeedCS<td><td>")
+                            sMessage.Append("<select name='IsSCS'>")
+                            sMessage.Append("<option ")
+                            If s.IsSCS Then sMessage.Append("selected ")
+                            sMessage.Append("value='1'>Yes</option>")
+                            sMessage.Append("<option ")
+                            If Not s.IsSCS Then sMessage.Append("selected ")
+                            sMessage.Append("value='0'>No</option>")
+                            sMessage.Append("</select>")
+                            sMessage.Append("</td></tr>")
 
                                 sMessage.Append("<tr><td>Send ECMs<td><td>")
                                 sMessage.Append("<select name='sendecms'>")
