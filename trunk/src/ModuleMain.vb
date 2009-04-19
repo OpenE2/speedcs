@@ -56,6 +56,8 @@ Module ModuleMain
             CfgClients.Clients.ResetAU()
 
             CfgCardServers.Load()
+            CfgCardServers.CardServers.ResetDeniedServices()
+
             CfgCardReaders.Load()
 
             Readers.StartReaders()

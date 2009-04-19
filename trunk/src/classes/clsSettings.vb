@@ -453,6 +453,12 @@ End Class
             Return List.Contains(value)
         End Function
 
+        Public Sub ResetDeniedServices()
+            For Each s As clsCardServer In Me.List
+                s.deniedSRVIDCAID.Clear()
+            Next
+        End Sub
+
     End Class
 
     Private _CardServers As New clsCardServers
