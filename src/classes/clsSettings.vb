@@ -299,21 +299,6 @@ End Class
             Next
         End Sub
 
-        'Private _ucrc2Find As UInteger
-        'Public Function FindByUCRC(ByVal ucrc As UInteger) As clsClient
-        '    _ucrc2Find = ucrc
-        '    Dim _Result As Integer = List.FindIndex(AddressOf FindClient)
-        '    If _Result = -1 Then
-        '        Return Nothing
-        '    Else
-        '        Return CType(List.Item(_Result), clsClient)
-        '    End If
-        'End Function
-
-        'Private Function FindClient(ByVal obj As clsClient) As Boolean
-        '    If obj.ucrc = _ucrc2Find Then Return True Else Return False
-        'End Function
-
     End Class
 
     Private _Clients As New clsClients

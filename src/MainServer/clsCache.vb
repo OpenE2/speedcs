@@ -259,16 +259,7 @@ Public Class clsCache
         Public ReadOnly Property ServiceName() As String
 
             Get
-                If Services.serviceIDList.Contains(CAId.ToString("X4") & ":" & SRVId.ToString("X4")) Then
-                    Try
-                        Return CStr(Services.serviceIDList.Item(CAId.ToString("X4") & ":" & SRVId.ToString("X4"))).Split(CChar("|"))(1)
-                    Catch ex As Exception
-                        Return CAId.ToString("X4") & " [" & SRVId.ToString("X4") & "]"
-                    End Try
-                Else
-                    Return CAId.ToString("X4") & " [" & SRVId.ToString("X4") & "]"
-                End If
-
+                Return Services.GetServiceInfo(CAId.ToString("X4") & ":" & SRVId.ToString("X4")).Name
             End Get
 
         End Property

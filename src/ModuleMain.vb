@@ -61,7 +61,7 @@ Module ModuleMain
             Readers.StartReaders()
 
             'Service Datei laden
-            Services.Load()
+            'Services.Load()
 
             'Admin Oberfläche Webserver
             Webserver.StartServer()
