@@ -21,6 +21,7 @@
 
 Imports System.IO
 Imports System.Text.RegularExpressions
+Imports System.Environment
 
 Public Class clsService
     Public ID As String
@@ -28,34 +29,38 @@ Public Class clsService
     Public Name As String
     Public Type As String
     Public Comment As String
-    Public Sub New(ByVal value As String)
+
+    Public Sub New(ByVal ID As String, ByVal value As String)
         If Not value Is Nothing Then
+            Me.ID = ID
             Dim arr() As String = value.Split(CChar("|"))
             Me.Provider = arr(0)
             Me.Name = arr(1)
             Me.Type = arr(2)
             Me.Comment = arr(3)
         Else
-            Me.Provider = "unknown"
-            Me.Name = "unknown"
-            Me.Type = "unknown"
-            Me.Comment = "unknown"
+            Me.ID = ID
+            Me.Provider = "undefined"
+            Me.Name = "undefined"
+            Me.Type = "undefined"
+            Me.Comment = "undefined"
         End If
     End Sub
 End Class
 
-Public Class clsServices
-    Public serviceIDList As SortedList
+Public Class clsServicesList
+    Inherits SortedList(Of String, clsService)
 
-    Public Sub Load()
+    Public Sub New()
+        ReloadListFromFile()
+    End Sub
 
+    Public Sub ReloadListFromFile()
         Try
-            Dim filepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
+            Dim filepath As String = Path.Combine(GetFolderPath(SpecialFolder.CommonApplicationData), Application.ProductName)
             Dim filename As String = Path.Combine(filepath, "speedcs.srvid")
-
-            serviceIDList = New SortedList
-
-            If IO.File.Exists(filename) Then
+            If File.Exists(filename) Then
+                Me.Clear()
                 Dim lineidx As Integer = 0
                 Using sr As New StreamReader(filename)
                     Dim r As New Regex("(.*[0-9A-Fa-f]{4}\:[0-9A-Fa-f]{4})(\|)(.*)")
@@ -69,29 +74,35 @@ Public Class clsServices
                             Dim Caids() As String = Split(CaidSrvId(0), ",")
                             For Each Caid As String In Caids
                                 Dim key As String = Caid & ":" & CaidSrvId(1)
-                                If Not serviceIDList.ContainsKey(key.ToUpper) Then
-                                    serviceIDList.Add(key.ToUpper, m.Groups(3).Value.ToUpper)
+                                If Not Me.ContainsKey(key.ToUpper) Then
+                                    Dim value As New clsService(key.ToUpper, m.Groups(3).Value.ToUpper)
+                                    Me.Add(key.ToUpper, value)
                                 End If
                             Next
                         Else
                             Output("Error in Line #" & lineidx, LogColor:=ConsoleColor.Yellow)
                         End If
                     End While
+                    Output(Me.Count & " Services loaded.")
                 End Using
-                Output(serviceIDList.Count & " Services loaded.")
             Else
-                Output("Service file SpeedCS.srvid not found.", LogDestination.none, LogSeverity.warning, ConsoleColor.Yellow)
+                Output("Service file SpeedCS.srvid not found.", _
+                       LogDestination.none, _
+                       LogSeverity.warning, _
+                       ConsoleColor.Yellow)
             End If
         Catch ex As Exception
-            Output("Services.Load()" & ex.Message & ex.StackTrace, LogColor:=ConsoleColor.Red)
+            Output("Services.Load()" & ex.Message & ex.StackTrace, _
+                   LogColor:=ConsoleColor.Red)
         End Try
-
     End Sub
 
     Public Function GetServiceInfo(ByVal key As String) As clsService
-
-        GetServiceInfo = New clsService(TryCast(serviceIDList(key), String))
-        GetServiceInfo.ID = key
-
+        If Me.ContainsKey(key) Then
+            Return Me(key)
+        Else
+            Return New clsService(key, Nothing)
+        End If
     End Function
 End Class
+

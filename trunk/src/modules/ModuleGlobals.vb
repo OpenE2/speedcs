@@ -174,7 +174,7 @@ Module ModuleGlobals
 
     Public AESCrypt As New clsAESCrypt
 
-    Public Services As New clsServices
+    Public Services As New clsServicesList
 
     Public emmStack As New SortedList(Of UInt32, Byte())
 
