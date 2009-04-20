@@ -366,7 +366,7 @@ End Class
         'ToDo: Build IsSCS in Webif
         Public IsSCS As Boolean = False
         Public acceptedCAID As List(Of UInt16)
-        <XmlIgnore()> Public deniedSRVIDCAID As List(Of UInt32)
+        <XmlIgnore()> Public deniedSRVIDCAID As New List(Of UInt32)
 
         Private _Password As String = String.Empty
         Private _Username As String = String.Empty
