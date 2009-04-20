@@ -176,8 +176,8 @@ End Class
         Public payeduntil As Date = Now
         Public lastrequest As Date = Now
         Public AUServer As String = String.Empty
-        Public AUisActiveSince As Date
-        Public AUSerial As UInt32
+        <XmlIgnore()> Public AUisActiveSince As Date
+        <XmlIgnore()> Public AUSerial As UInt32
 
         Private _ucrc As UInteger
         Public ReadOnly Property ucrc() As UInteger
@@ -292,13 +292,6 @@ End Class
 
         End Function
 
-        Public Sub ResetAU()
-            For Each c As clsClient In Me.List
-                c.AUSerial = 0
-                c.AUisActiveSince = New Date
-            Next
-        End Sub
-
     End Class
 
     Private _Clients As New clsClients
@@ -373,7 +366,7 @@ End Class
         'ToDo: Build IsSCS in Webif
         Public IsSCS As Boolean = False
         Public acceptedCAID As List(Of UInt16)
-        Public deniedSRVIDCAID As List(Of UInt32)
+        <XmlIgnore()> Public deniedSRVIDCAID As List(Of UInt32)
 
         Private _Password As String = String.Empty
         Private _Username As String = String.Empty
@@ -452,12 +445,6 @@ End Class
         Public Function Contains(ByVal value As clsCardServer) As Boolean
             Return List.Contains(value)
         End Function
-
-        Public Sub ResetDeniedServices()
-            For Each s As clsCardServer In Me.List
-                s.deniedSRVIDCAID.Clear()
-            Next
-        End Sub
 
     End Class
 
@@ -589,3 +576,4 @@ End Class
 #End Region
 
 End Class
+
