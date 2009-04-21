@@ -28,6 +28,7 @@ Public Class clsCMDManager
         Public iSRVID As UInt16
         Public PROVID() As Byte
         Public iPROVID As UInt32
+        Public BTE18_19() As Byte
         Public CW() As Byte
         Public Key As UInt32
 
@@ -77,6 +78,10 @@ Public Class clsCMDManager
                 Key = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
             End Using
             Using ms As New MemoryStream
+                ms.Write(PlainCMD1Message, 18, 2) 'Miracle Byte 18+19
+                BTE18_19 = ms.ToArray
+            End Using
+            Using ms As New MemoryStream
                 ms.Write(PlainCMD1Message, 4, 4)
                 _ECM_CRC = ms.ToArray
             End Using
@@ -117,8 +122,8 @@ Public Class clsCMDManager
                 ms.Write(PROVID, 0, 4)
                 ms.WriteByte(&H0)
                 ms.WriteByte(&H0)
-                ms.WriteByte(&H0)
-                ms.WriteByte(&H0)
+                ms.WriteByte(BTE18_19(0))
+                ms.WriteByte(BTE18_19(1))
                 ms.Write(CW, 0, _Length)
                 While Not ms.Length = 48
                     ms.WriteByte(&HFF)
@@ -392,7 +397,13 @@ Public Class clsCMDManager
 
     Private Sub IncommingCMD1(ByVal sender As Object, ByVal type As CMDType)
         Dim answer As clsCMD1Answer = TryCast(sender, clsCMD1Answer)
-        Dim request As clsCMD0Request = TryCast(CMD0Requests(answer.Key), clsCMD0Request)
+        Debug.WriteLine("CMD from " & answer.SenderIP)
+
+        Dim request As clsCMD0Request = Nothing
+        If CMD0Requests.ContainsKey(answer.Key) Then
+            request = TryCast(CMD0Requests(answer.Key), clsCMD0Request)
+        End If
+
         If Not request Is Nothing Then
             'If one of the request matches
             Debug.WriteLine("Answer Action")
@@ -516,77 +527,89 @@ Public Class clsCMDManager
 
     Private Sub Send2Servers(ByVal request As clsCMD0Request)
         Dim canceled As Boolean = False
+        Try
 
-        For Each udpserv As clsUDPIO In udpServers
-            With udpserv.serverobject
+            For Each udpserv As clsUDPIO In udpServers
+                With udpserv.serverobject
 
-                'Avoid Re-Request
-                If request.CMD = CMDType.sCSRequest Then
-                    If .IsSCS Then
-                        canceled = True
+                    'Avoid Re-Request
+                    If request.CMD = CMDType.sCSRequest Then
+                        If .IsSCS Then
+                            canceled = True
+                        Else
+                            canceled = False
+                            request.PlainMessage(0) = &H0 'Make a normal CMD0 for non sCS Servers
+                        End If
                     Else
-                        canceled = False
-                        request.PlainMessage(0) = &H0 'Make a normal CMD0 for non sCS Servers
+                        If .IsSCS Then
+                            request.PlainMessage(0) = &H55 'Make a special Request for sCS Severs
+                        End If
                     End If
-                Else
-                    If .IsSCS Then
-                        request.PlainMessage(0) = &H55 'Make a special Request for sCS Severs
+
+                    If request.SenderIP = .IP Then
+                        canceled = True
                     End If
-                End If
 
-                If request.SenderIP = .IP Then
-                    canceled = True
-                End If
+                    If .Active _
+                        And .SendECMs _
+                        And Not request.UCRC.ContainsKey(.UCRC) _
+                        And Not canceled Then
 
-                If .Active _
-                    And .SendECMs _
-                    And Not request.UCRC.ContainsKey(.UCRC) _
-                    And Not canceled Then
+                        If Not .deniedSRVIDCAID.Contains(request.srvidcaid) Then
+                            Using ms As New MemoryStream
+                                Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
+                                Array.Reverse(ucrcbytes)
+                                ms.Write(ucrcbytes, 0, 4)
+                                Dim encrypted() As Byte = AESCrypt.Encrypt(request.PlainMessage, .MD5_Password)
+                                ms.Write(encrypted, 0, encrypted.Length)
+                                udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
+                            End Using
+                        Else
+                            Dim sb As New StringBuilder
+                            Dim output() As Byte = BitConverter.GetBytes(request.srvidcaid)
+                            sb.Append(Hex(output(0)).PadLeft(2, CChar("0")))
+                            sb.Append(Hex(output(1)).PadLeft(2, CChar("0")))
+                            sb.Append(":")
+                            sb.Append(Hex(output(2)).PadLeft(2, CChar("0")))
+                            sb.Append(Hex(output(3)).PadLeft(2, CChar("0")))
+                            Debug.WriteLine(sb.ToString & " suppressed for " & .Username)
+                        End If
 
-                    If Not .deniedSRVIDCAID.Contains(request.srvidcaid) Then
+                    End If
+                End With
+            Next
+
+        Catch ex As Exception
+
+        End Try
+    End Sub
+
+    Private Sub SendBroadcast()
+        Try
+
+            Dim Broadcast2send As clsCMD1Answer
+            SyncLock BroadcastQueue
+                Broadcast2send = BroadcastQueue.Dequeue
+            End SyncLock
+            For Each udpserv As clsUDPIO In udpServers
+                With udpserv.serverobject
+                    If .Active And .SendBroadcasts And Not Broadcast2send.SenderIP = .IP Then
                         Using ms As New MemoryStream
                             Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
                             Array.Reverse(ucrcbytes)
                             ms.Write(ucrcbytes, 0, 4)
-                            Dim encrypted() As Byte = AESCrypt.Encrypt(request.PlainMessage, .MD5_Password)
+                            Dim encrypted() As Byte = AESCrypt.Encrypt(Broadcast2send.TransformCMD0toCMD66Message, .MD5_Password)
                             ms.Write(encrypted, 0, encrypted.Length)
-                            udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
+                            udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(.IP), .Port)
                         End Using
-                    Else
-                        Dim sb As New StringBuilder
-                        Dim output() As Byte = BitConverter.GetBytes(request.srvidcaid)
-                        sb.Append(Hex(output(0)).PadLeft(2, CChar("0")))
-                        sb.Append(Hex(output(1)).PadLeft(2, CChar("0")))
-                        sb.Append(":")
-                        sb.Append(Hex(output(2)).PadLeft(2, CChar("0")))
-                        sb.Append(Hex(output(3)).PadLeft(2, CChar("0")))
-                        Debug.WriteLine(sb.ToString & " suppressed for " & .Username)
+                        Debug.WriteLine("Broadcast to " & .Hostname & ":" & .Port)
                     End If
+                End With 'udpserv.serverobject
+            Next
+        Catch ex As Exception
 
-                End If
-            End With
-        Next
+        End Try
     End Sub
 
-    Private Sub SendBroadcast()
-        Dim Broadcast2send As clsCMD1Answer
-        SyncLock BroadcastQueue
-            Broadcast2send = BroadcastQueue.Dequeue
-        End SyncLock
-        For Each udpserv As clsUDPIO In udpServers
-            With udpserv.serverobject
-                If .Active And .SendBroadcasts And Not Broadcast2send.SenderIP = .IP Then
-                    Using ms As New MemoryStream
-                        Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
-                        Array.Reverse(ucrcbytes)
-                        ms.Write(ucrcbytes, 0, 4)
-                        Dim encrypted() As Byte = AESCrypt.Encrypt(Broadcast2send.TransformCMD0toCMD66Message, .MD5_Password)
-                        ms.Write(encrypted, 0, encrypted.Length)
-                        udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(.IP), .Port)
-                    End Using
-                    Debug.WriteLine("Broadcast to " & .Hostname & ":" & .Port)
-                End If
-            End With 'udpserv.serverobject
-        Next
-    End Sub
+
 End Class

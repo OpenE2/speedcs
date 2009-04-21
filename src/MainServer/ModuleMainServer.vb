@@ -155,8 +155,8 @@ Module ModuleMainServer
                     Select Case CType(plainRequest(0), CMDType)
 
                         Case CMDType.ECMRequest  'Request
-                            'If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
-                            'If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
+                            If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
+                            If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
                             'sClient.lastrequest = Now
                             'Cache.Requests.Add(ecm)
                             'strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
@@ -230,6 +230,7 @@ Module ModuleMainServer
         Try
 
             Dim mSender As clsUDPIO = TryCast(sender, clsUDPIO)
+
             Dim plainRequest() As Byte = Nothing
             Dim strServerResult As String = "undefined"
             Dim logColor As ConsoleColor = ConsoleColor.Blue
@@ -247,7 +248,7 @@ Module ModuleMainServer
 
                 Case CMDType.ECMResponse  'Answer
                     CacheManager.CMD1Answers.Add(plainRequest, message.sourceIP, message.sourcePort)
-                    Debug.WriteLine("Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
+                    Debug.WriteLine("incoming from " & message.sourceIP & " - Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
 
                     'Dim found As Boolean = False
                     'For Each sr As clsCache.clsCAMDMsg In Cache.ServerRequests
