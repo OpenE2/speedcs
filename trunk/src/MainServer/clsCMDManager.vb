@@ -49,7 +49,7 @@ Public Class clsCMDManager
 
         Public ReadOnly Property Dead() As Boolean
             Get
-                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 3 Then
+                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 6 Then
                     Return True
                 Else
                     Return False
@@ -73,6 +73,7 @@ Public Class clsCMDManager
             _CreateDate = Date.Now
             Using ms As New MemoryStream
                 ms.Write(PlainCMD1Message, 8, 8)
+                ms.Write(PlainCMD1Message, 18, 2) 'Miracle Byte 18+19
                 Key = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
             End Using
             Using ms As New MemoryStream
@@ -278,7 +279,7 @@ Public Class clsCMDManager
 
         Public ReadOnly Property Dead() As Boolean
             Get
-                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 4 Then
+                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 6 Then
                     Return True
                 Else
                     Return False
@@ -299,6 +300,7 @@ Public Class clsCMDManager
             UCRC.Add(sUCRC, PlainCMD0Message)
             Using ms As New MemoryStream
                 ms.Write(PlainCMD0Message, 8, 8)
+                ms.Write(PlainCMD0Message, 18, 2) 'Miracle Byte 18+19
                 Key = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
             End Using
             Using ms As New MemoryStream
