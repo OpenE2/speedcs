@@ -129,221 +129,221 @@ Module ModuleMainServer
 
     Private Sub ClientIncoming(ByVal sender As Object, ByVal message As clsUDPIO.structUdpMessage)
 
-        Try
-            Dim strClientResult As String = "undefined"
-            Dim logColor As ConsoleColor = ConsoleColor.White
-            Dim plainRequest() As Byte
+        'Try
+        Dim strClientResult As String = "undefined"
+        Dim logColor As ConsoleColor = ConsoleColor.White
+        Dim plainRequest() As Byte
 
-            Dim sClient As clsSettingsClients.clsClient = _
-                        TryCast(CfgClients.Clients.FindByUCRC(message.ucrcInt),  _
-                                clsSettingsClients.clsClient)
+        Dim sClient As clsSettingsClients.clsClient = _
+                    TryCast(CfgClients.Clients.FindByUCRC(message.ucrcInt),  _
+                            clsSettingsClients.clsClient)
 
-            If Not sClient Is Nothing Then
-                If sClient.active Then
-                    plainRequest = AESCrypt.Decrypt(message.ByteMessage, sClient.MD5_Password)
+        If Not sClient Is Nothing Then
+            If sClient.active Then
+                plainRequest = AESCrypt.Decrypt(message.ByteMessage, sClient.MD5_Password)
 
-                    'Dim ecm As New clsCache.clsCAMDMsg
+                'Dim ecm As New clsCache.clsCAMDMsg
 
-                    'ecm.IncomingTimeStamp = Environment.TickCount
-                    'ecm.LoadFromPlainByteArray(plainRequest)
-                    'ecm.usercrc = message.ucrcInt
-                    'ecm.SenderUCRC = sClient.ucrc
-                    'ecm.SourceIP = message.sourceIP
-                    'ecm.SourcePort = message.sourcePort
-                    'strClientResult &= ecm.CMD
+                'ecm.IncomingTimeStamp = Environment.TickCount
+                'ecm.LoadFromPlainByteArray(plainRequest)
+                'ecm.usercrc = message.ucrcInt
+                'ecm.SenderUCRC = sClient.ucrc
+                'ecm.SourceIP = message.sourceIP
+                'ecm.SourcePort = message.sourcePort
+                'strClientResult &= ecm.CMD
 
-                    Select Case CType(plainRequest(0), CMDType)
+                Select Case CType(plainRequest(0), CMDType)
 
-                        Case CMDType.ECMRequest  'Request
-                            If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
-                            If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
-                            'sClient.lastrequest = Now
-                            'Cache.Requests.Add(ecm)
-                            'strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
-                            If Not emmSender.Enabled Then emmSender.Start()
+                    Case CMDType.ECMRequest  'Request
+                        If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
+                        If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
+                        'sClient.lastrequest = Now
+                        'Cache.Requests.Add(ecm)
+                        'strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
+                        If Not emmSender.Enabled Then emmSender.Start()
 
 
-                            CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
-                            Debug.WriteLine("Requests in cachemanager: " & CacheManager.CMD0Requests.Count)
+                        CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
+                        Debug.WriteLine("Requests in cachemanager: " & CacheManager.CMD0Requests.Count)
 
-                        Case CMDType.sCSRequest 'Special sCS Request
-                            CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
+                    Case CMDType.sCSRequest 'Special sCS Request
+                        CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
 
-                        Case CMDType.BroadCastResponse  'Answer
-                            CacheManager.CMD1Answers.Add(plainRequest, message.sourceIP, message.sourcePort)
+                    Case CMDType.BroadCastResponse  'Answer
+                        CacheManager.CMD1Answers.Add(plainRequest, message.sourceIP, message.sourcePort)
 
-                        Case CMDType.CascadingRequest  'Request cascading (MPCS Source)
-                            strClientResult = "Command 03 Cascading?!"
+                    Case CMDType.CascadingRequest  'Request cascading (MPCS Source)
+                        strClientResult = "Command 03 Cascading?!"
 
-                        Case CMDType.NotFound  'Fehler ?!
-                            strClientResult = "Command 44 Error"
+                    Case CMDType.NotFound  'Fehler ?!
+                        strClientResult = "Command 44 Error"
 
-                        Case CMDType.CRCError  'CRC false
-                            strClientResult = "CRC of ECM wrong!"
+                    Case CMDType.CRCError  'CRC false
+                        strClientResult = "CRC of ECM wrong!"
 
-                        Case CMDType.EMMResponse
-                            Dim emmCRC As UInt32 = BitConverter.ToUInt32(plainRequest, 4)
+                    Case CMDType.EMMResponse
+                        Dim emmCRC As UInt32 = BitConverter.ToUInt32(plainRequest, 4)
 
-                            With emmStack
-                                SyncLock emmStack
-                                    If Not .ContainsKey(emmCRC) Then .Add(emmCRC, plainRequest)
-                                End SyncLock
-                                logColor = ConsoleColor.Cyan
-                                strClientResult = "Emm Client Response. Stack: " & .Count
-                            End With
+                        With emmStack
+                            SyncLock emmStack
+                                If Not .ContainsKey(emmCRC) Then .Add(emmCRC, plainRequest)
+                            End SyncLock
+                            logColor = ConsoleColor.Cyan
+                            strClientResult = "Emm Client Response. Stack: " & .Count
+                        End With
 
-                        Case Else
-                            strClientResult = "Command " & Hex(plainRequest(0))
+                    Case Else
+                        strClientResult = "Command " & Hex(plainRequest(0))
 
-                    End Select
-                Else
-                    logColor = ConsoleColor.Red
-                    strClientResult = " !Account locked!"
-                End If
-
+                End Select
             Else
                 logColor = ConsoleColor.Red
-                strClientResult = "Illegal access or Account locked"
-                DebugOutputBytes(message.ucrc, "Illegal: " & message.ucrcInt & " ")
+                strClientResult = " !Account locked!"
             End If
 
-            If Not strClientResult = "undefined" Then
-                Dim strLog As String = ""
-                strLog &= strClientResult
+        Else
+            logColor = ConsoleColor.Red
+            strClientResult = "Illegal access or Account locked"
+            DebugOutputBytes(message.ucrc, "Illegal: " & message.ucrcInt & " ")
+        End If
 
-                Dim adressData As String = message.sourceIP & ":" & message.sourcePort
-                adressData = adressData.PadRight(22)
-
-                Output("C " & adressData & _
-                                    strLog, _
-                                    LogDestination.none, _
-                                    LogSeverity.info, _
-                                    logColor)
-            End If
-        Catch ex As Exception
-            Output("Client incoming: " & ex.Message & vbCrLf & ex.StackTrace, LogDestination.file)
-        End Try
-
-    End Sub
-
-    Private Sub ServerIncoming(ByVal sender As Object, ByVal message As clsUDPIO.structUdpMessage)
-        Try
-
-            Dim mSender As clsUDPIO = TryCast(sender, clsUDPIO)
-
-            Dim plainRequest() As Byte = Nothing
-            Dim strServerResult As String = "undefined"
-            Dim logColor As ConsoleColor = ConsoleColor.Blue
-
-            plainRequest = AESCrypt.Decrypt(message.ByteMessage, mSender.serverobject.MD5_Password)
-
-            Dim ecm As New clsCache.clsCAMDMsg
-            ecm.LoadFromPlainByteArray(plainRequest)
-            ecm.SenderUCRC = mSender.serverobject.UCRC
-
-            Select Case ecm.CMD
-
-                Case CMDType.ECMRequest 'Request
-                    strServerResult = " CMD00 shouldn't be here"
-
-                Case CMDType.ECMResponse  'Answer
-                    CacheManager.CMD1Answers.Add(plainRequest, message.sourceIP, message.sourcePort)
-                    Debug.WriteLine("incoming from " & message.sourceIP & " - Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
-
-                    'Dim found As Boolean = False
-                    'For Each sr As clsCache.clsCAMDMsg In Cache.ServerRequests
-                    '    If sr.ClientPID.Equals(ecm.ClientPID) Then
-                    '        ecm.ecmcrc = sr.ecmcrc
-                    '    End If
-                    'Next
-                    'For Each answer As clsCache.clsCAMDMsg In Cache.Answers
-                    '    If answer.ClientPID.Equals(ecm.ClientPID) Then
-                    '        found = True
-                    '        Exit For
-                    '    End If
-                    'Next
-
-                    'If Not found Then Cache.Answers.Add(ecm)
-                    strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
-
-                Case CMDType.EMMRequest  'Emm Zeuchs
-                    logColor = ConsoleColor.Cyan
-                    If Not plainRequest(1) = &H70 Then
-                        strServerResult = "EMM Request CMD05"
-
-                        Dim serialAlreadyAssigned As Boolean = False
-                        Dim c As clsSettingsClients.clsClient
-
-                        Dim cardSerial As UInt32 = BitConverter.ToUInt32(plainRequest, 40)
-                        For Each c In CfgClients.Clients
-                            If c.AUSerial = cardSerial Then serialAlreadyAssigned = True
-                            strServerResult = "EMM Request CMD05 already assigned"
-                            Exit For
-                        Next
-
-                        If Not serialAlreadyAssigned Then
-
-                            For Each c In CfgClients.Clients
-                                If c.AUServer = message.sourceIP And c.active Then
-                                    If c.AUSerial = 0 Then
-                                        c.AUSerial = cardSerial
-                                        If DateDiff(DateInterval.Minute, c.AUisActiveSince, Date.Now) > 30 Then
-                                            Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(c.Username))
-                                            Array.Reverse(ucrcbytes)
-                                            Using ms As New MemoryStream
-                                                ms.Write(ucrcbytes, 0, 4)
-                                                Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, c.MD5_Password)
-                                                ms.Write(eArr, 0, eArr.Length)
-                                                UdpClientManager.SendUDPMessage(ms.ToArray, _
-                                                                                Net.IPAddress.Parse(CStr(c.SourceIp)), _
-                                                                                c.SourcePort)
-                                                c.AUisActiveSince = Date.Now
-                                            End Using
-                                        End If
-                                        strServerResult = "EMM Request CMD05 assigned to '" & c.Username & "'"
-                                        Exit For
-                                    End If ' Not c.AUSerial = 0
-
-                                End If
-                            Next
-                        End If
-                        'WriteEcmToFile(plainRequest, "CMD5: ")
-
-                    Else
-                        strServerResult = "EMM Request CMD05 suppressed "
-                    End If
-
-                Case CMDType.NotFound  'Fehler timeout/notfound whatever?!
-                        strServerResult = "not found CMD44"
-                        With mSender.serverobject
-                            If Not .deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
-                                .deniedSRVIDCAID.Add(ecm.srvidcaid)
-                            End If
-                        End With
-                        DebugOutputBytes(plainRequest, "CMD44: ")
-
-                Case CMDType.CRCError  'CRC false
-                        strServerResult = "CRC of ECM wrong!"
-
-                Case Else
-                        strServerResult = "Command " & ecm.CMD
-
-            End Select
-
+        If Not strClientResult = "undefined" Then
             Dim strLog As String = ""
-            strLog &= strServerResult
+            strLog &= strClientResult
 
             Dim adressData As String = message.sourceIP & ":" & message.sourcePort
             adressData = adressData.PadRight(22)
 
-            Output("S " & adressData & _
-                            strLog, LogDestination.none, _
-                                                LogSeverity.info, _
-                                                logColor)
+            Output("C " & adressData & _
+                                strLog, _
+                                LogDestination.none, _
+                                LogSeverity.info, _
+                                logColor)
+        End If
+        'Catch ex As Exception
+        '    Output("Client incoming: " & ex.Message & vbCrLf & ex.StackTrace, LogDestination.file)
+        'End Try
 
-        Catch ex As Exception
-            Output("Server incoming: " & ex.Message & vbCrLf & ex.StackTrace, LogDestination.file)
-        End Try
+    End Sub
+
+    Private Sub ServerIncoming(ByVal sender As Object, ByVal message As clsUDPIO.structUdpMessage)
+        'Try
+
+        Dim mSender As clsUDPIO = TryCast(sender, clsUDPIO)
+
+        Dim plainRequest() As Byte = Nothing
+        Dim strServerResult As String = "undefined"
+        Dim logColor As ConsoleColor = ConsoleColor.Blue
+
+        plainRequest = AESCrypt.Decrypt(message.ByteMessage, mSender.serverobject.MD5_Password)
+
+        Dim ecm As New clsCache.clsCAMDMsg
+        ecm.LoadFromPlainByteArray(plainRequest)
+        ecm.SenderUCRC = mSender.serverobject.UCRC
+
+        Select Case ecm.CMD
+
+            Case CMDType.ECMRequest 'Request
+                strServerResult = " CMD00 shouldn't be here"
+
+            Case CMDType.ECMResponse  'Answer
+                CacheManager.CMD1Answers.Add(plainRequest, message.sourceIP, message.sourcePort)
+                Debug.WriteLine("incoming from " & message.sourceIP & " - Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
+
+                'Dim found As Boolean = False
+                'For Each sr As clsCache.clsCAMDMsg In Cache.ServerRequests
+                '    If sr.ClientPID.Equals(ecm.ClientPID) Then
+                '        ecm.ecmcrc = sr.ecmcrc
+                '    End If
+                'Next
+                'For Each answer As clsCache.clsCAMDMsg In Cache.Answers
+                '    If answer.ClientPID.Equals(ecm.ClientPID) Then
+                '        found = True
+                '        Exit For
+                '    End If
+                'Next
+
+                'If Not found Then Cache.Answers.Add(ecm)
+                strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
+
+            Case CMDType.EMMRequest  'Emm Zeuchs
+                logColor = ConsoleColor.Cyan
+                If Not plainRequest(1) = &H70 Then
+                    strServerResult = "EMM Request CMD05"
+
+                    Dim serialAlreadyAssigned As Boolean = False
+                    Dim c As clsSettingsClients.clsClient
+
+                    Dim cardSerial As UInt32 = BitConverter.ToUInt32(plainRequest, 40)
+                    For Each c In CfgClients.Clients
+                        If c.AUSerial = cardSerial Then serialAlreadyAssigned = True
+                        strServerResult = "EMM Request CMD05 already assigned"
+                        Exit For
+                    Next
+
+                    If Not serialAlreadyAssigned Then
+
+                        For Each c In CfgClients.Clients
+                            If c.AUServer = message.sourceIP And c.active Then
+                                If c.AUSerial = 0 Then
+                                    c.AUSerial = cardSerial
+                                    If DateDiff(DateInterval.Minute, c.AUisActiveSince, Date.Now) > 30 Then
+                                        Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(c.Username))
+                                        Array.Reverse(ucrcbytes)
+                                        Using ms As New MemoryStream
+                                            ms.Write(ucrcbytes, 0, 4)
+                                            Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, c.MD5_Password)
+                                            ms.Write(eArr, 0, eArr.Length)
+                                            UdpClientManager.SendUDPMessage(ms.ToArray, _
+                                                                            Net.IPAddress.Parse(CStr(c.SourceIp)), _
+                                                                            c.SourcePort)
+                                            c.AUisActiveSince = Date.Now
+                                        End Using
+                                    End If
+                                    strServerResult = "EMM Request CMD05 assigned to '" & c.Username & "'"
+                                    Exit For
+                                End If ' Not c.AUSerial = 0
+
+                            End If
+                        Next
+                    End If
+                    'WriteEcmToFile(plainRequest, "CMD5: ")
+
+                Else
+                    strServerResult = "EMM Request CMD05 suppressed "
+                End If
+
+            Case CMDType.NotFound  'Fehler timeout/notfound whatever?!
+                strServerResult = "not found CMD44"
+                With mSender.serverobject
+                    If Not .deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
+                        .deniedSRVIDCAID.Add(ecm.srvidcaid)
+                    End If
+                End With
+                DebugOutputBytes(plainRequest, "CMD44: ")
+
+            Case CMDType.CRCError  'CRC false
+                strServerResult = "CRC of ECM wrong!"
+
+            Case Else
+                strServerResult = "Command " & ecm.CMD
+
+        End Select
+
+        Dim strLog As String = ""
+        strLog &= strServerResult
+
+        Dim adressData As String = message.sourceIP & ":" & message.sourcePort
+        adressData = adressData.PadRight(22)
+
+        Output("S " & adressData & _
+                        strLog, LogDestination.none, _
+                                            LogSeverity.info, _
+                                            logColor)
+
+        'Catch ex As Exception
+        '    Output("Server incoming: " & ex.Message & vbCrLf & ex.StackTrace, LogDestination.file)
+        'End Try
     End Sub
 
 

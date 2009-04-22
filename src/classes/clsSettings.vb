@@ -21,6 +21,7 @@
 
 Imports System.Xml.Serialization
 Imports System.IO
+Imports System.Text.RegularExpressions
 
 Public Class clsSettingsGlobal
 
@@ -406,13 +407,22 @@ End Class
         Public ReadOnly Property IP() As String
             Get
                 Try
-                    Return Net.Dns.GetHostEntry(Hostname).AddressList(0).ToString
+                    Return validIP(Hostname).ToString
                 Catch ex As Exception
                     Return ""
                 End Try
             End Get
         End Property
 
+        Private Function validIP(ByVal hostname As String) As Net.IPAddress
+            Dim strRegex As String = "\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
+            Dim re As Regex = New Regex(strRegex)
+            If re.IsMatch(hostname) Then
+                Return Net.IPAddress.Parse(hostname)
+            Else
+                Return Net.Dns.GetHostAddresses(hostname)(0)
+            End If
+        End Function
     End Class
 
     Public Class clsCardServers
