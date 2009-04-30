@@ -135,7 +135,7 @@ Module ModuleGlobals
 #End Region
 
     Private ECMfilepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
-    Private ECMfilename As String = Path.Combine(ECMfilepath, "ECMlog.txt")
+    Private ECMfilename As String = Path.Combine(ECMfilepath, "EMMlog.txt")
 
     Public Sub DebugOutputBytes(ByVal b As Byte(), Optional ByVal prefix As String = "")
         Dim out As String = String.Empty
@@ -145,7 +145,7 @@ Module ModuleGlobals
         Debug.WriteLine(prefix & out)
     End Sub
 
-    Public Sub WriteEcmToFile(ByVal b As Byte(), Optional ByVal prefix As String = "")
+    Public Sub WriteEmmToFile(ByVal b As Byte(), Optional ByVal prefix As String = "")
         Dim out As String = String.Empty
         For i As Integer = 0 To b.Length - 1
             out &= b(i).ToString("X2") & " "
