@@ -292,6 +292,7 @@ Module ModuleMainServer
                         If c.AUServer = message.sourceIP And c.active Then
                             'If c.AUSerial = 0 Then
                             c.AUSerial = cardSerial
+
                             'If DateDiff(DateInterval.Minute, c.AUisActiveSince, Date.Now) > 30 Then
                             Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(c.Username))
                             Array.Reverse(ucrcbytes)
