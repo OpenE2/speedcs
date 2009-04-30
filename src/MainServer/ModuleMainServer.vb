@@ -183,7 +183,7 @@ Module ModuleMainServer
 
                     Case CMDType.EMMResponse
                         Dim emmCRC As UInt32 = BitConverter.ToUInt32(plainRequest, 4)
-
+                        WriteEmmToFile(plainRequest, "Client: ")
                         With emmStack
                             SyncLock emmStack
                                 If Not .ContainsKey(emmCRC) Then .Add(emmCRC, plainRequest)
@@ -268,50 +268,55 @@ Module ModuleMainServer
 
             Case CMDType.EMMRequest  'Emm Zeuchs
                 logColor = ConsoleColor.Cyan
-                If Not plainRequest(1) = &H70 Then
-                    strServerResult = "EMM Request CMD05"
 
-                    Dim serialAlreadyAssigned As Boolean = False
-                    Dim c As clsSettingsClients.clsClient
 
-                    Dim cardSerial As UInt32 = BitConverter.ToUInt32(plainRequest, 40)
+
+                'If Not plainRequest(1) = &H70 Then
+                WriteEmmToFile(plainRequest, "Server: ")
+
+                strServerResult = "EMM Request CMD05"
+
+                Dim serialAlreadyAssigned As Boolean = False
+                Dim c As clsSettingsClients.clsClient
+
+                Dim cardSerial As UInt32 = BitConverter.ToUInt32(plainRequest, 40)
+                For Each c In CfgClients.Clients
+                    If c.AUSerial = cardSerial Then serialAlreadyAssigned = True
+                    strServerResult = "EMM Request CMD05 already assigned"
+                    Exit For
+                Next
+
+                If Not serialAlreadyAssigned Then
+
                     For Each c In CfgClients.Clients
-                        If c.AUSerial = cardSerial Then serialAlreadyAssigned = True
-                        strServerResult = "EMM Request CMD05 already assigned"
-                        Exit For
+                        If c.AUServer = message.sourceIP And c.active Then
+                            'If c.AUSerial = 0 Then
+                            c.AUSerial = cardSerial
+                            'If DateDiff(DateInterval.Minute, c.AUisActiveSince, Date.Now) > 30 Then
+                            Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(c.Username))
+                            Array.Reverse(ucrcbytes)
+                            Using ms As New MemoryStream
+                                ms.Write(ucrcbytes, 0, 4)
+                                Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, c.MD5_Password)
+                                ms.Write(eArr, 0, eArr.Length)
+                                UdpClientManager.SendUDPMessage(ms.ToArray, _
+                                                                Net.IPAddress.Parse(CStr(c.SourceIp)), _
+                                                                c.SourcePort)
+                                c.AUisActiveSince = Date.Now
+                            End Using
+                            'End If
+                            strServerResult = "EMM Request CMD05 assigned to '" & c.Username & "'"
+                            Exit For
+                            'End If ' Not c.AUSerial = 0
+
+                        End If
                     Next
-
-                    If Not serialAlreadyAssigned Then
-
-                        For Each c In CfgClients.Clients
-                            If c.AUServer = message.sourceIP And c.active Then
-                                If c.AUSerial = 0 Then
-                                    c.AUSerial = cardSerial
-                                    If DateDiff(DateInterval.Minute, c.AUisActiveSince, Date.Now) > 30 Then
-                                        Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(c.Username))
-                                        Array.Reverse(ucrcbytes)
-                                        Using ms As New MemoryStream
-                                            ms.Write(ucrcbytes, 0, 4)
-                                            Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, c.MD5_Password)
-                                            ms.Write(eArr, 0, eArr.Length)
-                                            UdpClientManager.SendUDPMessage(ms.ToArray, _
-                                                                            Net.IPAddress.Parse(CStr(c.SourceIp)), _
-                                                                            c.SourcePort)
-                                            c.AUisActiveSince = Date.Now
-                                        End Using
-                                    End If
-                                    strServerResult = "EMM Request CMD05 assigned to '" & c.Username & "'"
-                                    Exit For
-                                End If ' Not c.AUSerial = 0
-
-                            End If
-                        Next
-                    End If
-                    'WriteEcmToFile(plainRequest, "CMD5: ")
-
-                Else
-                    strServerResult = "EMM Request CMD05 suppressed "
                 End If
+                'WriteEcmToFile(plainRequest, "CMD5: ")
+
+                'Else
+                'strServerResult = "EMM Request CMD05 suppressed "
+                'End If
 
             Case CMDType.NotFound  'Fehler timeout/notfound whatever?!
                 strServerResult = "not found CMD44"
@@ -353,6 +358,9 @@ Module ModuleMainServer
         SyncLock emmStack
             If emmStack.Count > 0 Then
                 Dim emm() As Byte = TryCast(emmStack(emmStack.Keys(0)), Byte())
+
+                emm = modifyEmm(emm) 'ORF Emm Fix
+
                 For Each udpserv As clsUDPIO In udpServers
                     With udpserv.serverobject
                         If .SendEMMs Then
@@ -375,7 +383,21 @@ Module ModuleMainServer
         emmSender.Stop()
     End Sub
 
+    Private Function modifyEmm(ByVal value() As Byte) As Byte()
+        Dim retVal() As Byte = value
+        'If retVal(15) = &H4 Then
+        '    retVal(15) = &H0
+        '    WriteEmmToFile(retVal, "ORFmod: ")
+        'End If
 
+        If retVal(10) = &HD And retVal(11) = &H5 And retVal(15) = &H0 Then
+            retVal(15) = &H4
+            WriteEmmToFile(retVal, "ORFmod: ")
+        End If
+
+
+        Return retVal
+    End Function
 
 
 
