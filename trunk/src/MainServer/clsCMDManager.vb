@@ -531,51 +531,66 @@ Public Class clsCMDManager
 
         For Each udpserv As clsUDPIO In udpServers
             With udpserv.serverobject
+                If .Active Then 'If not Disabled by Serversettings
+                    'Avoid Re-Request
+                    If request.CMD = CMDType.sCSRequest Then
+                        If .IsSCS Then
+                            canceled = True
+                        Else
+                            canceled = False
+                            request.PlainMessage(0) = &H0 'Make a normal CMD0 for non sCS Servers
+                        End If
+                    Else
+                        If .IsSCS Then
+                            request.PlainMessage(0) = &H55 'Make a special Request for sCS Severs
+                        End If
+                    End If
 
-                'Avoid Re-Request
-                If request.CMD = CMDType.sCSRequest Then
-                    If .IsSCS Then
+                    If request.SenderIP = .IP Then 'Not Re-Request
                         canceled = True
-                    Else
-                        canceled = False
-                        request.PlainMessage(0) = &H0 'Make a normal CMD0 for non sCS Servers
                     End If
-                Else
-                    If .IsSCS Then
-                        request.PlainMessage(0) = &H55 'Make a special Request for sCS Severs
+
+                    If Not .supportedCAID.Contains(request.iCAID) Then 'CAID not Supported by Serversettings
+                        canceled = True
+                    End If
+
+                    If Not .supportedSRVID.Contains(request.iSRVID) Then 'Srvid not Supported by Serversettings
+                        canceled = True
+                    End If
+
+                    If Not .SendECMs Then 'Not allowed send Request by Serversettings
+                        canceled = True
+                    End If
+
+                    If request.UCRC.ContainsKey(.UCRC) Then 'Not Re-Request
+                        canceled = True
+                    End If
+
+                    If Not canceled Then
+
+                        If Not .deniedSRVIDCAID.Contains(request.srvidcaid) Then
+                            Using ms As New MemoryStream
+                                Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
+                                Array.Reverse(ucrcbytes)
+                                ms.Write(ucrcbytes, 0, 4)
+                                Dim encrypted() As Byte = AESCrypt.Encrypt(request.PlainMessage, .MD5_Password)
+                                ms.Write(encrypted, 0, encrypted.Length)
+                                udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
+                            End Using
+                        Else
+                            Dim sb As New StringBuilder
+                            Dim output() As Byte = BitConverter.GetBytes(request.srvidcaid)
+                            sb.Append(Hex(output(0)).PadLeft(2, CChar("0")))
+                            sb.Append(Hex(output(1)).PadLeft(2, CChar("0")))
+                            sb.Append(":")
+                            sb.Append(Hex(output(2)).PadLeft(2, CChar("0")))
+                            sb.Append(Hex(output(3)).PadLeft(2, CChar("0")))
+                            Debug.WriteLine(sb.ToString & " suppressed for " & .Username)
+                        End If
+
                     End If
                 End If
 
-                If request.SenderIP = .IP Then
-                    canceled = True
-                End If
-
-                If .Active _
-                    And .SendECMs _
-                    And Not request.UCRC.ContainsKey(.UCRC) _
-                    And Not canceled Then
-
-                    If Not .deniedSRVIDCAID.Contains(request.srvidcaid) Then
-                        Using ms As New MemoryStream
-                            Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
-                            Array.Reverse(ucrcbytes)
-                            ms.Write(ucrcbytes, 0, 4)
-                            Dim encrypted() As Byte = AESCrypt.Encrypt(request.PlainMessage, .MD5_Password)
-                            ms.Write(encrypted, 0, encrypted.Length)
-                            udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
-                        End Using
-                    Else
-                        Dim sb As New StringBuilder
-                        Dim output() As Byte = BitConverter.GetBytes(request.srvidcaid)
-                        sb.Append(Hex(output(0)).PadLeft(2, CChar("0")))
-                        sb.Append(Hex(output(1)).PadLeft(2, CChar("0")))
-                        sb.Append(":")
-                        sb.Append(Hex(output(2)).PadLeft(2, CChar("0")))
-                        sb.Append(Hex(output(3)).PadLeft(2, CChar("0")))
-                        Debug.WriteLine(sb.ToString & " suppressed for " & .Username)
-                    End If
-
-                End If
             End With
         Next
 

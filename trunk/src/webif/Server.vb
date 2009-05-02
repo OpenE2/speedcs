@@ -413,7 +413,8 @@ Public Class Server
                         For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
                             If s.Hostname.Equals(hostname) And s.Port.Equals(port) Then
                                 'Speichern der neuen Einstellungen
-                                Dim tmp() As String = Split(sbuffer.ToString, vbCrLf & vbCrLf)
+                                Dim decStr As String = System.Web.HttpUtility.UrlDecode(sbuffer.ToString)
+                                Dim tmp() As String = Split(decStr, vbCrLf & vbCrLf)
                                 If tmp.Length > 1 Then
                                     tmp = Split(tmp(1), "&")
                                     Dim settingschanged As Boolean = False
@@ -476,6 +477,28 @@ Public Class Server
                                                         s.SendECMs = CBool(l(1))
                                                         settingschanged = True
                                                     End If
+                                                Case "supportedCAIDs"
+                                                    Dim sCAIDs() As String = l(1).Split(CChar(","))
+                                                    If sCAIDs.Length > 0 Then
+                                                        s.supportedCAID.Clear()
+                                                        For i As Integer = 0 To sCAIDs.Length - 1
+                                                            Dim iCAID As UInt16 = CUShort("&H" & sCAIDs(i))
+                                                            If Not s.supportedCAID.Contains(iCAID) Then
+                                                                s.supportedCAID.Add(iCAID)
+                                                            End If
+                                                        Next
+                                                    End If
+                                                Case "supportedSRVIDs"
+                                                    Dim sSRVIDs() As String = l(1).Split(CChar(","))
+                                                    If sSRVIDs.Length > 0 Then
+                                                        s.supportedSRVID.Clear()
+                                                        For i As Integer = 0 To sSRVIDs.Length - 1
+                                                            Dim iSRVID As UInt16 = CUShort("&H" & sSRVIDs(i))
+                                                            If Not s.supportedCAID.Contains(iSRVID) Then
+                                                                s.supportedSRVID.Add(iSRVID)
+                                                            End If
+                                                        Next
+                                                    End If
                                                 Case "remove"
                                                     deleteEntry = True
                                                     settingschanged = True
@@ -517,6 +540,28 @@ Public Class Server
                             sMessage.Append("<tr><td>Nickname<td><td><input type='text' name='nickname' value='" & s.Nickname & "'></td></tr>")
                             sMessage.Append("<tr><td>Hostname<td><td><input type='text' name='hostname' value='" & s.Hostname & "'></td></tr>")
                             sMessage.Append("<tr><td>Port<td><td><input type='text' name='port' value='" & s.Port & "'></td></tr>")
+
+                            sMessage.Append("<tr><td>CAID(s)<td><td><input type='text' name='supportedCAIDs' value='")
+
+                            Dim strTmp As String = String.Empty
+                            If s.supportedCAID.Count > 0 Then
+                                For Each iCAID In s.supportedCAID
+                                    strTmp &= Hex(iCAID).PadLeft(4, CChar("0")) & ","
+                                Next
+                                sMessage.Append(strTmp.Substring(0, strTmp.Length - 1))
+                            End If
+                            sMessage.Append("'></td></tr>")
+
+                            strTmp = String.Empty
+                            sMessage.Append("<tr><td>SRVID(s)<td><td><input type='text' name='supportedSRVIDs' value='")
+
+                            If s.supportedSRVID.Count > 0 Then
+                                For Each iSRVID In s.supportedSRVID
+                                    strTmp &= Hex(iSRVID).PadLeft(4, CChar("0")) & ","
+                                Next
+                                sMessage.Append(strTmp.Substring(0, strTmp.Length - 1))
+                            End If
+                            sMessage.Append("'></td></tr>")
 
                             sMessage.Append("<tr><td>Send Broadcasts<td><td>")
                             sMessage.Append("<select name='sendbroadcasts'>")
