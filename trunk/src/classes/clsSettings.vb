@@ -159,6 +159,7 @@ End Class
 
     Public Class clsClient
         Public active As Boolean = False
+        Public logemm As Boolean = False
         Private _Username As String = ""
         Private _Password As String = ""
         Public Unique As String = ""
@@ -359,6 +360,7 @@ End Class
 #Region "CardServer"
     Public Class clsCardServer
         Public Active As Boolean = False
+        Public Nickname As String = String.Empty
         Public Hostname As String = "localhost"
         Public Port As Integer = 20248
         Public SendBroadcasts As Boolean = False

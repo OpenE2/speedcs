@@ -398,66 +398,73 @@ Public Class Server
                     sMessage.Append(PageFooter())
                     SendHeader(sHttpVersion, "", sMessage.Length, "  200 OK")
                 Case "server.html"
-                        Dim lines() As String = Split(sbuffer.ToString, vbCrLf)
-                        Dim hostname As String = ""
-                        Dim port As Integer = 0
-                        For Each l As String In lines
-                            If Mid(LCase(l), 1, 3).Equals("get") Or Mid(LCase(l), 1, 4).Equals("post") Then
-                                hostname = GetValueFromUrl(l, "hostname")
-                                port = CInt(GetValueFromUrl(l, "port"))
-                                Exit For
-                            End If
-                        Next
-                        If Mid(LCase(sbuffer.ToString), 1, 4).Equals("post") Then
-                            For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
-                                If s.Hostname.Equals(hostname) And s.Port.Equals(port) Then
-                                    'Speichern der neuen Einstellungen
-                                    Dim tmp() As String = Split(sbuffer.ToString, vbCrLf & vbCrLf)
-                                    If tmp.Length > 1 Then
-                                        tmp = Split(tmp(1), "&")
-                                        Dim settingschanged As Boolean = False
-                                        Dim deleteEntry As Boolean = False
-                                        For Each t As String In tmp
-                                            Output(t)
-                                            Dim l() As String = Split(t, "=")
-                                            If l.Length = 2 Then
-                                                Select Case l(0)
-                                                    Case "hostname"
-                                                        If s.Hostname.Equals(l(1)) = False Then
-                                                            s.Hostname = l(1)
-                                                            hostname = s.Hostname
-                                                            settingschanged = True
-                                                        End If
-                                                    Case "username"
-                                                        If s.Username.Equals(l(1)) = False Then
-                                                            s.Username = l(1)
-                                                            settingschanged = True
-                                                        End If
-                                                    Case "password"
-                                                        If s.Password.Equals(l(1)) = False Then
-                                                            s.Password = l(1)
-                                                            settingschanged = True
-                                                        End If
-                                                    Case "port"
-                                                        If s.Port.Equals(l(1)) = False Then
-                                                            s.Port = CInt(l(1))
-                                                            port = s.Port
-                                                            settingschanged = True
-                                                        End If
-                                                    Case "active"
-                                                        If s.Active.Equals(CBool(l(1))) = False Then
-                                                            s.Active = CBool(l(1))
-                                                            settingschanged = True
-                                                        End If
-                                                    Case "sendbroadcasts"
-                                                        If s.SendBroadcasts.Equals(CBool(l(1))) = False Then
-                                                            s.SendBroadcasts = CBool(l(1))
-                                                            settingschanged = True
-                                                        End If
-                                                    Case "sendemms"
-                                                        If s.SendEMMs.Equals(CBool(l(1))) = False Then
-                                                            s.SendEMMs = CBool(l(1))
-                                                            settingschanged = True
+                    Dim lines() As String = Split(sbuffer.ToString, vbCrLf)
+                    Dim hostname As String = ""
+                    Dim nickname As String = ""
+                    Dim port As Integer = 0
+                    For Each l As String In lines
+                        If Mid(LCase(l), 1, 3).Equals("get") Or Mid(LCase(l), 1, 4).Equals("post") Then
+                            hostname = GetValueFromUrl(l, "hostname")
+                            port = CInt(GetValueFromUrl(l, "port"))
+                            Exit For
+                        End If
+                    Next
+                    If Mid(LCase(sbuffer.ToString), 1, 4).Equals("post") Then
+                        For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
+                            If s.Hostname.Equals(hostname) And s.Port.Equals(port) Then
+                                'Speichern der neuen Einstellungen
+                                Dim tmp() As String = Split(sbuffer.ToString, vbCrLf & vbCrLf)
+                                If tmp.Length > 1 Then
+                                    tmp = Split(tmp(1), "&")
+                                    Dim settingschanged As Boolean = False
+                                    Dim deleteEntry As Boolean = False
+                                    For Each t As String In tmp
+                                        Output(t)
+                                        Dim l() As String = Split(t, "=")
+                                        If l.Length = 2 Then
+                                            Select Case l(0)
+                                                Case "nickname"
+                                                    If s.Nickname.Equals(l(1)) = False Then
+                                                        s.Nickname = l(1)
+                                                        nickname = s.Nickname
+                                                        settingschanged = True
+                                                    End If
+                                                Case "hostname"
+                                                    If s.Hostname.Equals(l(1)) = False Then
+                                                        s.Hostname = l(1)
+                                                        hostname = s.Hostname
+                                                        settingschanged = True
+                                                    End If
+                                                Case "username"
+                                                    If s.Username.Equals(l(1)) = False Then
+                                                        s.Username = l(1)
+                                                        settingschanged = True
+                                                    End If
+                                                Case "password"
+                                                    If s.Password.Equals(l(1)) = False Then
+                                                        s.Password = l(1)
+                                                        settingschanged = True
+                                                    End If
+                                                Case "port"
+                                                    If s.Port.Equals(l(1)) = False Then
+                                                        s.Port = CInt(l(1))
+                                                        port = s.Port
+                                                        settingschanged = True
+                                                    End If
+                                                Case "active"
+                                                    If s.Active.Equals(CBool(l(1))) = False Then
+                                                        s.Active = CBool(l(1))
+                                                        settingschanged = True
+                                                    End If
+                                                Case "sendbroadcasts"
+                                                    If s.SendBroadcasts.Equals(CBool(l(1))) = False Then
+                                                        s.SendBroadcasts = CBool(l(1))
+                                                        settingschanged = True
+                                                    End If
+                                                Case "sendemms"
+                                                    If s.SendEMMs.Equals(CBool(l(1))) = False Then
+                                                        s.SendEMMs = CBool(l(1))
+                                                        settingschanged = True
                                                     End If
                                                 Case "IsSCS"
                                                     If s.IsSCS.Equals(CBool(l(1))) = False Then
@@ -469,68 +476,68 @@ Public Class Server
                                                         s.SendECMs = CBool(l(1))
                                                         settingschanged = True
                                                     End If
-                                                    Case "remove"
-                                                        deleteEntry = True
-                                                        settingschanged = True
-                                                    Case Else
-                                                        Output("Not Handled:" & l(0))
-                                                End Select
-                                            End If
-                                        Next
-                                        If deleteEntry Then
-                                            CfgCardServers.CardServers.Remove(s)
+                                                Case "remove"
+                                                    deleteEntry = True
+                                                    settingschanged = True
+                                                Case Else
+                                                    Output("Not Handled:" & l(0))
+                                            End Select
                                         End If
-                                        If settingschanged Then
-                                            StopUDP()
-                                            CfgCardServers.Save()
-                                            StartUDP()
-                                        End If
+                                    Next
+                                    If deleteEntry Then
+                                        CfgCardServers.CardServers.Remove(s)
                                     End If
-                                    Exit For
+                                    If settingschanged Then
+                                        StopUDP()
+                                        CfgCardServers.Save()
+                                        StartUDP()
+                                    End If
                                 End If
-                            Next
-                        End If
-                        sMessage.Append(PageHeader("" & Application.ProductName & " Server", True))
-                        sMessage.Append(ButtonBar())
+                                Exit For
+                            End If
+                        Next
+                    End If
+                    sMessage.Append(PageHeader("" & Application.ProductName & " Server", True))
+                    sMessage.Append(ButtonBar())
 
+                    sMessage.Append("<table border=1>")
+                    For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
+                        If s.Hostname.Equals(hostname) And s.Port.Equals(port) Then
+                            sMessage.Append("<form action='server.html?hostname=" & hostname & "&port=" & port & "' method='post'>")
+                            sMessage.Append("<tr><td>Active<td><td>")
+                            sMessage.Append("<select name='active'>")
+                            sMessage.Append("<option ")
+                            If s.Active Then sMessage.Append("selected ")
+                            sMessage.Append("value='1'>Yes</option>")
+                            sMessage.Append("<option ")
+                            If Not s.Active Then sMessage.Append("selected ")
+                            sMessage.Append("value='0'>No</option>")
+                            sMessage.Append("</select>")
+                            sMessage.Append("</td></tr>")
+                            sMessage.Append("<tr><td>Nickname<td><td><input type='text' name='nickname' value='" & s.Nickname & "'></td></tr>")
+                            sMessage.Append("<tr><td>Hostname<td><td><input type='text' name='hostname' value='" & s.Hostname & "'></td></tr>")
+                            sMessage.Append("<tr><td>Port<td><td><input type='text' name='port' value='" & s.Port & "'></td></tr>")
 
-                        sMessage.Append("<table border=1>")
-                        For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
-                            If s.Hostname.Equals(hostname) And s.Port.Equals(port) Then
-                                sMessage.Append("<form action='server.html?hostname=" & hostname & "&port=" & port & "' method='post'>")
-                                sMessage.Append("<tr><td>Active<td><td>")
-                                sMessage.Append("<select name='active'>")
-                                sMessage.Append("<option ")
-                                If s.Active Then sMessage.Append("selected ")
-                                sMessage.Append("value='1'>Yes</option>")
-                                sMessage.Append("<option ")
-                                If Not s.Active Then sMessage.Append("selected ")
-                                sMessage.Append("value='0'>No</option>")
-                                sMessage.Append("</select>")
-                                sMessage.Append("</td></tr>")
-                                sMessage.Append("<tr><td>Hostname<td><td><input type='text' name='hostname' value='" & s.Hostname & "'></td></tr>")
-                                sMessage.Append("<tr><td>Port<td><td><input type='text' name='port' value='" & s.Port & "'></td></tr>")
+                            sMessage.Append("<tr><td>Send Broadcasts<td><td>")
+                            sMessage.Append("<select name='sendbroadcasts'>")
+                            sMessage.Append("<option ")
+                            If s.SendBroadcasts Then sMessage.Append("selected ")
+                            sMessage.Append("value='1'>Yes</option>")
+                            sMessage.Append("<option ")
+                            If Not s.SendBroadcasts Then sMessage.Append("selected ")
+                            sMessage.Append("value='0'>No</option>")
+                            sMessage.Append("</select>")
+                            sMessage.Append("</td></tr>")
 
-                                sMessage.Append("<tr><td>Send Broadcasts<td><td>")
-                                sMessage.Append("<select name='sendbroadcasts'>")
-                                sMessage.Append("<option ")
-                                If s.SendBroadcasts Then sMessage.Append("selected ")
-                                sMessage.Append("value='1'>Yes</option>")
-                                sMessage.Append("<option ")
-                                If Not s.SendBroadcasts Then sMessage.Append("selected ")
-                                sMessage.Append("value='0'>No</option>")
-                                sMessage.Append("</select>")
-                                sMessage.Append("</td></tr>")
-
-                                sMessage.Append("<tr><td>Send EMMs<td><td>")
-                                sMessage.Append("<select name='sendemms'>")
-                                sMessage.Append("<option ")
-                                If s.SendEMMs Then sMessage.Append("selected ")
-                                sMessage.Append("value='1'>Yes</option>")
-                                sMessage.Append("<option ")
-                                If Not s.SendEMMs Then sMessage.Append("selected ")
-                                sMessage.Append("value='0'>No</option>")
-                                sMessage.Append("</select>")
+                            sMessage.Append("<tr><td>Send EMMs<td><td>")
+                            sMessage.Append("<select name='sendemms'>")
+                            sMessage.Append("<option ")
+                            If s.SendEMMs Then sMessage.Append("selected ")
+                            sMessage.Append("value='1'>Yes</option>")
+                            sMessage.Append("<option ")
+                            If Not s.SendEMMs Then sMessage.Append("selected ")
+                            sMessage.Append("value='0'>No</option>")
+                            sMessage.Append("</select>")
                             sMessage.Append("</td></tr>")
 
                             sMessage.Append("<tr><td>Server is SpeedCS<td><td>")
@@ -544,219 +551,241 @@ Public Class Server
                             sMessage.Append("</select>")
                             sMessage.Append("</td></tr>")
 
-                                sMessage.Append("<tr><td>Send ECMs<td><td>")
-                                sMessage.Append("<select name='sendecms'>")
-                                sMessage.Append("<option ")
-                                If s.SendECMs Then sMessage.Append("selected ")
-                                sMessage.Append("value='1'>Yes</option>")
-                                sMessage.Append("<option ")
-                                If Not s.SendECMs Then sMessage.Append("selected ")
-                                sMessage.Append("value='0'>No</option>")
-                                sMessage.Append("</select>")
+                            sMessage.Append("<tr><td>Send ECMs<td><td>")
+                            sMessage.Append("<select name='sendecms'>")
+                            sMessage.Append("<option ")
+                            If s.SendECMs Then sMessage.Append("selected ")
+                            sMessage.Append("value='1'>Yes</option>")
+                            sMessage.Append("<option ")
+                            If Not s.SendECMs Then sMessage.Append("selected ")
+                            sMessage.Append("value='0'>No</option>")
+                            sMessage.Append("</select>")
+                            sMessage.Append("</td></tr>")
+
+                            sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & s.Username & "'></td></tr>")
+                            sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & s.Password & "'></td></tr>")
+                            sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
+                            sMessage.Append("<tr><td colspan=3><input type='submit' value='Save'></td></tr>")
+
+                            sMessage.Append("<tr><td colspan=3><table border=1><tr><td>autoblocked</td></tr>")
+                            For Each srvidcaid As UInt32 In s.deniedSRVIDCAID
+                                sMessage.Append("<tr><td>")
+                                Dim output() As Byte = BitConverter.GetBytes(srvidcaid)
+                                Dim sid As String = Hex(output(0)).PadLeft(2, CChar("0")) & _
+                                                    Hex(output(1)).PadLeft(2, CChar("0")) & _
+                                                    ":" & _
+                                                    Hex(output(2)).PadLeft(2, CChar("0")) & _
+                                                    Hex(output(3)).PadLeft(2, CChar("0"))
+
+                                sMessage.Append(sid & "</td><td>")
+                                sMessage.Append(Services.GetServiceInfo(sid).Provider & " - " & Services.GetServiceInfo(sid).Name)
                                 sMessage.Append("</td></tr>")
-
-                                sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & s.Username & "'></td></tr>")
-                                sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & s.Password & "'></td></tr>")
-                                sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
-                                sMessage.Append("<tr><td colspan=3><input type='submit' value='Save'></td></tr>")
-
-                                sMessage.Append("<tr><td colspan=3><table border=1><tr><td>autoblocked</td></tr>")
-                                For Each srvidcaid As UInt32 In s.deniedSRVIDCAID
-                                    sMessage.Append("<tr><td>")
-                                    Dim output() As Byte = BitConverter.GetBytes(srvidcaid)
-                                    Dim sid As String = Hex(output(0)).PadLeft(2, CChar("0")) & _
-                                                        Hex(output(1)).PadLeft(2, CChar("0")) & _
-                                                        ":" & _
-                                                        Hex(output(2)).PadLeft(2, CChar("0")) & _
-                                                        Hex(output(3)).PadLeft(2, CChar("0"))
-
-                                    sMessage.Append(sid & "</td><td>")
-                                    sMessage.Append(Services.GetServiceInfo(sid).Provider & " - " & Services.GetServiceInfo(sid).Name)
-                                    sMessage.Append("</td></tr>")
-                                Next
-                                sMessage.Append("</table></td></tr>")
-                                sMessage.Append("</form>")
-                                Exit For
-                            End If
-                        Next
-                        sMessage.Append("</table>")
-                        sMessage.Append(PageFooter())
-                        SendHeader(sHttpVersion, "", sMessage.Length, "  200 OK")
+                            Next
+                            sMessage.Append("</table></td></tr>")
+                            sMessage.Append("</form>")
+                            Exit For
+                        End If
+                    Next
+                    sMessage.Append("</table>")
+                    sMessage.Append("<br>")
+                    sMessage.Append(PageFooter())
+                    SendHeader(sHttpVersion, "", sMessage.Length, "  200 OK")
                 Case "users.html"
-                        sMessage.Append(PageHeader("" & Application.ProductName & " Users", True))
-                        sMessage.Append(ButtonBar())
-                        Dim lines() As String = Split(sbuffer.ToString, vbCrLf)
-                        Dim hostname As String = ""
-                        Dim port As Integer = 0
-                        For Each l As String In lines
-                            If Mid(LCase(l), 1, 3).Equals("get") Then
-                                If GetValueFromUrl(l, "add").Length > 0 Then
-                                    Dim nu As New clsSettingsClients.clsClient
-                                    nu.Username = "New_user"
-                                    CfgClients.Clients.Add(nu)
+                    sMessage.Append(PageHeader("" & Application.ProductName & " Users", True))
+                    sMessage.Append(ButtonBar())
+                    Dim lines() As String = Split(sbuffer.ToString, vbCrLf)
+                    Dim hostname As String = ""
+                    Dim port As Integer = 0
+                    For Each l As String In lines
+                        If Mid(LCase(l), 1, 3).Equals("get") Then
+                            If GetValueFromUrl(l, "add").Length > 0 Then
+                                Dim nu As New clsSettingsClients.clsClient
+                                nu.Username = "New_user"
+                                CfgClients.Clients.Add(nu)
+                            End If
+                            Exit For
+                        End If
+                    Next
+
+                    sMessage.Append("<table class='buttonbar' border=2><tr class='buttonbar'><td class='buttonbar'><a href='users.html?add=true' class='buttonbar'>Add User</a></td>")
+                    sMessage.Append("<td class='buttonbar'><a href='importusers.html'>Import mpcs.conf</a></td></tr></table>")
+                    sMessage.Append("<table border=1>")
+                    sMessage.Append("<tr>")
+                    sMessage.Append("<th>Active</th><th>CRC</th><th>Username</th>")
+                    sMessage.Append("</tr>")
+                    For Each c As clsSettingsClients.clsClient In CfgClients.Clients
+                        sMessage.Append("<tr>")
+                        sMessage.Append("<td>" & c.active & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & c.Username & "</td><td><a href='user.html?username=" & c.Username & "'>Edit</a></td>")
+                        sMessage.Append("</tr>")
+                    Next
+                    sMessage.Append("</table>")
+                    sMessage.Append("<br>")
+                    sMessage.Append(PageFooter())
+                    SendHeader(sHttpVersion, "", sMessage.Length, "  200 OK")
+                Case "user.html"
+                    Dim lines() As String = Split(sbuffer.ToString, vbCrLf)
+                    Dim username As String = ""
+                    For Each l As String In lines
+                        If Mid(LCase(l), 1, 3).Equals("get") Or Mid(LCase(l), 1, 4).Equals("post") Then
+                            username = GetValueFromUrl(l, "username")
+                            Exit For
+                        End If
+                    Next
+                    If Mid(LCase(sbuffer.ToString), 1, 4).Equals("post") Then
+                        For Each c As clsSettingsClients.clsClient In CfgClients.Clients
+                            If c.Username.Equals(username) Then
+                                'Speichern der neuen Einstellungen
+                                Dim tmp() As String = Split(sbuffer.ToString, vbCrLf & vbCrLf)
+                                If tmp.Length > 1 Then
+                                    tmp = Split(tmp(1), "&")
+                                    Dim settingschanged As Boolean = False
+                                    Dim deleteEntry As Boolean = False
+                                    For Each t As String In tmp
+                                        Dim l() As String = Split(t, "=")
+                                        If l.Length = 2 Then
+                                            Select Case l(0)
+                                                Case "username"
+                                                    If c.Username.Equals(l(1)) = False Then
+                                                        c.Username = l(1)
+                                                        username = c.Username
+                                                        settingschanged = True
+                                                    End If
+                                                Case "password"
+                                                    If c.Password.Equals(l(1)) = False Then
+                                                        c.Password = l(1)
+                                                        settingschanged = True
+                                                    End If
+                                                Case "auserver"
+                                                    If c.AUServer.Equals(l(1)) = False Then
+                                                        c.AUServer = l(1)
+                                                        settingschanged = True
+                                                    End If
+                                                Case "active"
+                                                    If c.active.Equals(CBool(l(1))) = False Then
+                                                        c.active = CBool(l(1))
+                                                        settingschanged = True
+                                                    End If
+                                                Case "logemm"
+                                                    If c.logemm.Equals(CBool(l(1))) = False Then
+                                                        c.logemm = CBool(l(1))
+                                                        settingschanged = True
+                                                    End If
+                                                Case "remove"
+                                                    deleteEntry = True
+                                                    settingschanged = True
+                                                Case Else
+                                                    Output("Not Handled:" & l(0))
+                                            End Select
+                                        End If
+                                    Next
+                                    If deleteEntry Then
+                                        CfgClients.Clients.Remove(c)
+                                    End If
+                                    If settingschanged Then
+                                        CfgClients.Save()
+                                    End If
                                 End If
                                 Exit For
                             End If
                         Next
+                    End If
+                    sMessage.Append(PageHeader("" & Application.ProductName & " User", True))
+                    sMessage.Append(ButtonBar())
 
-                        sMessage.Append("<table class='buttonbar' border=2><tr class='buttonbar'><td class='buttonbar'><a href='users.html?add=true' class='buttonbar'>Add User</a></td>")
-                        sMessage.Append("<td class='buttonbar'><a href='importusers.html'>Import mpcs.conf</a></td></tr></table>")
-                        sMessage.Append("<table border=1>")
-                        sMessage.Append("<tr>")
-                        sMessage.Append("<th>Active</th><th>CRC</th><th>Username</th>")
-                        sMessage.Append("</tr>")
-                        For Each c As clsSettingsClients.clsClient In CfgClients.Clients
-                            sMessage.Append("<tr>")
-                            sMessage.Append("<td>" & c.active & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & c.Username & "</td><td><a href='user.html?username=" & c.Username & "'>Edit</a></td>")
-                            sMessage.Append("</tr>")
-                        Next
-                        sMessage.Append("</table>")
-                        sMessage.Append(PageFooter())
-                        SendHeader(sHttpVersion, "", sMessage.Length, "  200 OK")
-                Case "user.html"
-                        Dim lines() As String = Split(sbuffer.ToString, vbCrLf)
-                        Dim username As String = ""
-                        For Each l As String In lines
-                            If Mid(LCase(l), 1, 3).Equals("get") Or Mid(LCase(l), 1, 4).Equals("post") Then
-                                username = GetValueFromUrl(l, "username")
-                                Exit For
+
+                    sMessage.Append("<table border=1>")
+                    For Each c As clsSettingsClients.clsClient In CfgClients.Clients
+                        If c.Username.Equals(username) Then
+                            sMessage.Append("<form action='user.html?username=" & username & "' method='post'>")
+                            sMessage.Append("<tr><td>Active<td><td>")
+                            sMessage.Append("<select name='active'>")
+                            sMessage.Append("<option ")
+                            If c.active Then sMessage.Append("selected ")
+                            sMessage.Append("value='1'>Yes</option>")
+                            sMessage.Append("<option ")
+                            If Not c.active Then sMessage.Append("selected ")
+                            sMessage.Append("value='0'>No</option>")
+                            sMessage.Append("</select>")
+                            sMessage.Append("</td></tr>")
+                            sMessage.Append("<tr><td>AU Server<td><td>")
+                            sMessage.Append("<select name='auserver'>")
+                            sMessage.Append("<option value=''></option>")
+                            For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
+                                If s.SendEMMs Then
+                                    sMessage.Append("<option ")
+                                    If c.AUServer.Equals(s.Nickname) Then sMessage.Append("selected ")
+                                    sMessage.Append("value='" & s.Nickname & "'>" & s.Nickname & "</option>")
+                                End If
+                            Next
+                            If c.AUServer.Equals("All") Then
+                                sMessage.Append("<option selected value='All'>**All**</option>")
+                            Else
+                                sMessage.Append("<option value='All'>**All**</option>")
                             End If
-                        Next
-                        If Mid(LCase(sbuffer.ToString), 1, 4).Equals("post") Then
-                            For Each c As clsSettingsClients.clsClient In CfgClients.Clients
-                                If c.Username.Equals(username) Then
-                                    'Speichern der neuen Einstellungen
-                                    Dim tmp() As String = Split(sbuffer.ToString, vbCrLf & vbCrLf)
-                                    If tmp.Length > 1 Then
-                                        tmp = Split(tmp(1), "&")
-                                        Dim settingschanged As Boolean = False
-                                        Dim deleteEntry As Boolean = False
-                                        For Each t As String In tmp
-                                            Dim l() As String = Split(t, "=")
-                                            If l.Length = 2 Then
-                                                Select Case l(0)
-                                                    Case "username"
-                                                        If c.Username.Equals(l(1)) = False Then
-                                                            c.Username = l(1)
-                                                            username = c.Username
-                                                            settingschanged = True
-                                                        End If
-                                                    Case "password"
-                                                        If c.Password.Equals(l(1)) = False Then
-                                                            c.Password = l(1)
-                                                            settingschanged = True
-                                                        End If
-                                                    Case "auserver"
-                                                        If c.AUServer.Equals(l(1)) = False Then
-                                                            c.AUServer = l(1)
-                                                            settingschanged = True
-                                                        End If
-                                                    Case "active"
-                                                        If c.active.Equals(CBool(l(1))) = False Then
-                                                            c.active = CBool(l(1))
-                                                            settingschanged = True
-                                                        End If
-                                                    Case "remove"
-                                                        deleteEntry = True
-                                                        settingschanged = True
-                                                    Case Else
-                                                        Output("Not Handled:" & l(0))
-                                                End Select
-                                            End If
-                                        Next
-                                        If deleteEntry Then
-                                            CfgClients.Clients.Remove(c)
-                                        End If
-                                        If settingschanged Then
+                            sMessage.Append("</select>")
+                            sMessage.Append("</td></tr>")
+                            sMessage.Append("<tr><td>Log EMM<td><td>")
+                            sMessage.Append("<select name='logemm'>")
+                            sMessage.Append("<option ")
+                            If c.logemm Then sMessage.Append("selected ")
+                            sMessage.Append("value='1'>Yes</option>")
+                            sMessage.Append("<option ")
+                            If Not c.logemm Then sMessage.Append("selected ")
+                            sMessage.Append("value='0'>No</option>")
+                            sMessage.Append("</select>")
+                            sMessage.Append("</td></tr>")
+                            sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & c.Username & "'></td></tr>")
+                            sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & c.Password & "'></td></tr>")
+                            sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
+                            sMessage.Append("<tr><td colspan=2><input type='submit' value='Save'></td></tr>")
+                            sMessage.Append("</form>")
+                            Exit For
+                        End If
+                    Next
+                    sMessage.Append("</table>")
+                    sMessage.Append("<br>")
+                    sMessage.Append(PageFooter())
+                    SendHeader(sHttpVersion, "", sMessage.Length, "  200 OK")
+                Case "importusers.html"
+                    Dim importcount = -1
+                    If Mid(LCase(sbuffer.ToString), 1, 4).Equals("post") Then
+                        Dim tmp() As String = Split(sbuffer.ToString, vbCrLf & vbCrLf)
+                        If tmp.Length > 1 Then
+                            'Output("in")
+                            tmp = Split(tmp(1), "&")
+                            'Dim settingschanged As Boolean = False
+                            'Dim deleteEntry As Boolean = False
+                            For Each t As String In tmp
+                                Dim l() As String = Split(t, "=")
+                                If l.Length = 2 Then
+                                    Select Case l(0)
+                                        Case "mpcsusers"
+                                            importcount = ParseUser(HttpUtility.UrlDecode(l(1)))
                                             CfgClients.Save()
-                                        End If
-                                    End If
-                                    Exit For
+                                            Exit For
+                                    End Select
                                 End If
                             Next
                         End If
-                        sMessage.Append(PageHeader("" & Application.ProductName & " User", True))
-                        sMessage.Append(ButtonBar())
-
-
-                        sMessage.Append("<table border=1>")
-                        For Each c As clsSettingsClients.clsClient In CfgClients.Clients
-                            If c.Username.Equals(username) Then
-                                sMessage.Append("<form action='user.html?username=" & username & "' method='post'>")
-                                sMessage.Append("<tr><td>Active<td><td>")
-                                sMessage.Append("<select name='active'>")
-                                sMessage.Append("<option ")
-                                If c.active Then sMessage.Append("selected ")
-                                sMessage.Append("value='1'>Yes</option>")
-                                sMessage.Append("<option ")
-                                If Not c.active Then sMessage.Append("selected ")
-                                sMessage.Append("value='0'>No</option>")
-                                sMessage.Append("</select>")
-                                sMessage.Append("</td></tr>")
-
-                                sMessage.Append("<tr><td>AU Server<td><td>")
-                                sMessage.Append("<select name='auserver'>")
-                                sMessage.Append("<option value=''></option>")
-                                For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
-                                    If s.SendEMMs Then
-                                        sMessage.Append("<option ")
-                                        If c.AUServer.Equals(s.Hostname) Then sMessage.Append("selected ")
-                                        sMessage.Append("value='" & s.Hostname & "'>" & s.Hostname & "</option>")
-                                    End If
-                                Next
-                                sMessage.Append("</select>")
-                                sMessage.Append("</td></tr>")
-                                sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & c.Username & "'></td></tr>")
-                                sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & c.Password & "'></td></tr>")
-                                sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
-                                sMessage.Append("<tr><td colspan=2><input type='submit' value='Save'></td></tr>")
-                                sMessage.Append("</form>")
-                                Exit For
-                            End If
-                        Next
-                        sMessage.Append("</table>")
-                        sMessage.Append(PageFooter())
-                        SendHeader(sHttpVersion, "", sMessage.Length, "  200 OK")
-                Case "importusers.html"
-                        Dim importcount = -1
-                        If Mid(LCase(sbuffer.ToString), 1, 4).Equals("post") Then
-                            Dim tmp() As String = Split(sbuffer.ToString, vbCrLf & vbCrLf)
-                            If tmp.Length > 1 Then
-                                'Output("in")
-                                tmp = Split(tmp(1), "&")
-                                'Dim settingschanged As Boolean = False
-                                'Dim deleteEntry As Boolean = False
-                                For Each t As String In tmp
-                                    Dim l() As String = Split(t, "=")
-                                    If l.Length = 2 Then
-                                        Select Case l(0)
-                                            Case "mpcsusers"
-                                                importcount = ParseUser(HttpUtility.UrlDecode(l(1)))
-                                                CfgClients.Save()
-                                                Exit For
-                                        End Select
-                                    End If
-                                Next
-                            End If
-                        End If
-                        sMessage.Append(PageHeader("" & Application.ProductName & " Import Users", True))
-                        sMessage.Append(ButtonBar())
-                        sMessage.Append("<form action='importusers.html' method='post'>")
-                        sMessage.Append("<table border=1>")
-                        sMessage.Append("<tr>")
-                        sMessage.Append("<td><textarea cols=80 rows=20 name='mpcsusers'></textarea></td>")
-                        'sMessage.Append("<td><input type='file' name='mpcsusersfile'></td>")
-                        sMessage.Append("</tr>")
-                        sMessage.Append("<tr>")
-                        sMessage.Append("<td><input type='submit' value='Start Import'></td>")
-                        sMessage.Append("</tr>")
-                        sMessage.Append("</table>")
-                        sMessage.Append("</form>")
-                        If importcount <> -1 Then
-                            sMessage.Append(importcount & " Users imported.")
-                        End If
-                        sMessage.Append(PageFooter())
-                        SendHeader(sHttpVersion, "", sMessage.Length, "  200 OK")
+                    End If
+                    sMessage.Append(PageHeader("" & Application.ProductName & " Import Users", True))
+                    sMessage.Append(ButtonBar())
+                    sMessage.Append("<form action='importusers.html' method='post'>")
+                    sMessage.Append("<table border=1>")
+                    sMessage.Append("<tr>")
+                    sMessage.Append("<td><textarea cols=80 rows=20 name='mpcsusers'></textarea></td>")
+                    'sMessage.Append("<td><input type='file' name='mpcsusersfile'></td>")
+                    sMessage.Append("</tr>")
+                    sMessage.Append("<tr>")
+                    sMessage.Append("<td><input type='submit' value='Start Import'></td>")
+                    sMessage.Append("</tr>")
+                    sMessage.Append("</table>")
+                    sMessage.Append("</form>")
+                    If importcount <> -1 Then
+                        sMessage.Append(importcount & " Users imported.")
+                    End If
+                    sMessage.Append(PageFooter())
+                    SendHeader(sHttpVersion, "", sMessage.Length, "  200 OK")
                 Case Else
                         sMessage.Append("<H2>404 Error! Request not supported...</H2>")
                         SendHeader(sHttpVersion, "", sMessage.Length, " 404 Not Found")
@@ -1143,7 +1172,7 @@ Public Class Server
             sMessage.Append("</tr>")
         Next
         sMessage.Append("</table>")
-        sMessage.Append(PageFooter())
+        sMessage.Append("<br>")
 
     End Sub
 
@@ -1276,8 +1305,7 @@ Public Class Server
             End If
         Next
         sMessage.Append("</table>")
-        sMessage.Append(PageFooter())
-
+        sMessage.Append("<br>")
     End Sub
 
 #End Region
@@ -1295,7 +1323,7 @@ Public Class Server
         For Each c As clsSettingsClients.clsClient In CfgClients.Clients
             If DateDiff(DateInterval.Second, c.lastrequest, Now) <= 120 Then
                 sMessage.Append("<tr>")
-                sMessage.Append("<td>" & c.Username & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & c.lastrequest & "</td><td>" & c.SourceIp & "</td><td>" & c.SourcePort & "</td><td>" & c.AutoUpdate & "</td>")
+                sMessage.Append("<td>" & c.Username & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & c.lastrequest & "</td><td>" & c.SourceIp & "</td><td>" & c.SourcePort & "</td><td>" & c.AUServer & "</td>")
                 sMessage.Append("</tr>")
             End If
         Next
@@ -1331,7 +1359,7 @@ Public Class Server
         sMessage.Append("</tr>")
         For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
             sMessage.Append("<tr>")
-            sMessage.Append("<td>" & s.Active & "</td><td>" & s.Hostname & "</td><td>" & s.Port & "</td><td>" & s.Username & "</td><td>" & s.UCRC.ToString("X6") & "</td><td><a href='server.html?hostname=" & s.Hostname & "&port=" & s.Port & "'>Edit</a></td>")
+            sMessage.Append("<td>" & s.Active & "</td><td>" & s.Nickname & "</td><td>" & s.Hostname & "</td><td>" & s.Port & "</td><td>" & s.Username & "</td><td>" & s.UCRC.ToString("X6") & "</td><td><a href='server.html?hostname=" & s.Hostname & "&port=" & s.Port & "'>Edit</a></td>")
             sMessage.Append("</tr>")
         Next
         sMessage.Append("</table>")
