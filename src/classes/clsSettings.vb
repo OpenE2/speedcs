@@ -369,7 +369,11 @@ End Class
         'ToDo: Build IsSCS in Webif
         Public IsSCS As Boolean = False
         Public acceptedCAID As List(Of UInt16)
-        <XmlIgnore()> Public deniedSRVIDCAID As New List(Of UInt32)
+
+        Public supportedCAID As List(Of UInt16) 'Supported over Settings
+        Public supportedSRVID As List(Of UInt16) 'Supported over Settings
+
+        <XmlIgnore()> Public deniedSRVIDCAID As New List(Of UInt32) 'Rejected over Server behavior
 
         Private _Password As String = String.Empty
         Private _Username As String = String.Empty
