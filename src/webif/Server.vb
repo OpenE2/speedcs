@@ -558,7 +558,7 @@ Public Class Server
                             sMessage.Append("<tr><td>Hostname<td><td><input type='text' name='hostname' value='" & s.Hostname & "'></td></tr>")
                             sMessage.Append("<tr><td>Port<td><td><input type='text' name='port' value='" & s.Port & "'></td></tr>")
 
-                            sMessage.Append("<tr><td>CAID(s)<td><td><input type='text' name='supportedCAIDs' value='")
+                            sMessage.Append("<tr><td>Allowed CAID(s)<td><td><input type='text' name='supportedCAIDs' value='")
 
                             Dim strTmp As String = String.Empty
                             If s.supportedCAID.Count > 0 Then
@@ -570,7 +570,7 @@ Public Class Server
                             sMessage.Append("'></td></tr>")
 
                             strTmp = String.Empty
-                            sMessage.Append("<tr><td>SRVID(s)<td><td><input type='text' name='supportedSRVIDs' value='")
+                            sMessage.Append("<tr><td>Allowed SRVID(s)<td><td><input type='text' name='supportedSRVIDs' value='")
 
                             If s.supportedSRVID.Count > 0 Then
                                 For Each iSRVID In s.supportedSRVID

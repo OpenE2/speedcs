@@ -528,13 +528,25 @@ Public Class clsCMDManager
     Private Sub Send2Servers(ByVal request As clsCMD0Request)
         Dim canceled As Boolean = False
 
+        Dim consoleOut As String = "S [" _
+                               & Hex(request.iCAID).PadLeft(4, CChar("0")) _
+                               & ":" _
+                               & Hex(request.iSRVID).PadLeft(4, CChar("0")) _
+                               & "] -> " 
+
+
+
         For Each udpserv As clsUDPIO In udpServers
+            Dim consoleOutReason As String = " unknown"
+
             With udpserv.serverobject
+
                 If .Active Then 'If not Disabled by Serversettings
 
                     If request.CMD = CMDType.sCSRequest Then 'Avoid Re-Request
                         If .IsSCS Then
                             canceled = True
+                            consoleOutReason = " got from SCS"
                         Else
                             canceled = False
                             request.PlainMessage(0) = &H0 'Make a normal CMD0 for non sCS Servers
@@ -547,26 +559,40 @@ Public Class clsCMDManager
 
                     If request.SenderIP = .IP Then 'Not Re-Request
                         canceled = True
+                        consoleOutReason = " avoid Loop to " & .IP
                     End If
 
-                    If Not .supportedCAID.Contains(request.iCAID) Then 'CAID not Supported by Serversettings
+                    If Not .supportedCAID.Contains(request.iCAID) And Not .supportedCAID.Count = 0 Then 'CAID not Supported by Serversettings and CAID List not Empty
                         canceled = True
+
+                        'Output("S CaID [" _
+                        '       & Hex(request.iCAID).PadLeft(4, CChar("0")) _
+                        '       & "] Denied in Server Config!" _
+                        '       & "", LogDestination.none, LogSeverity.info, ConsoleColor.Red)
+                        consoleOut &= "CAID"
+                        consoleOutReason = " denied CAID"
                     End If
 
-                    If Not .supportedSRVID.Contains(request.iSRVID) Then 'Srvid not Supported by Serversettings
+                    If Not .supportedSRVID.Contains(request.iSRVID) And Not .supportedSRVID.Count = 0 Then 'Srvid not Supported by Serversettings and Srvid List not empty
                         canceled = True
+
+                        consoleOut &= ", SRVID"
+                        consoleOutReason = " denied SRVID"
                     End If
 
                     If Not .SendECMs Then 'Not allowed send Request by Serversettings
                         canceled = True
+                        consoleOutReason = " Server not accept ECM"
                     End If
 
                     If request.UCRC.ContainsKey(.UCRC) Then 'Not Re-Request
                         canceled = True
+                        consoleOutReason = " Avoid loop to UCRC"
                     End If
 
                     If .deniedSRVIDCAID.Contains(request.srvidcaid) Then 'Not allowed because server returns 44
                         canceled = True
+                        consoleOutReason = " Server cannot answer"
                     End If
 
                     If Not canceled Then
@@ -581,14 +607,16 @@ Public Class clsCMDManager
                                                    udpserv.serverobject.Port)
                         End Using
                     Else
-                        Dim sb As New StringBuilder
-                        Dim output() As Byte = BitConverter.GetBytes(request.srvidcaid)
-                        sb.Append(Hex(output(0)).PadLeft(2, CChar("0")))
-                        sb.Append(Hex(output(1)).PadLeft(2, CChar("0")))
-                        sb.Append(":")
-                        sb.Append(Hex(output(2)).PadLeft(2, CChar("0")))
-                        sb.Append(Hex(output(3)).PadLeft(2, CChar("0")))
-                        Debug.WriteLine(sb.ToString & " suppressed for " & .Username)
+                        'Dim sb As New StringBuilder
+                        'Dim output() As Byte = BitConverter.GetBytes(request.srvidcaid)
+                        'sb.Append(Hex(output(0)).PadLeft(2, CChar("0")))
+                        'sb.Append(Hex(output(1)).PadLeft(2, CChar("0")))
+                        'sb.Append(":")
+                        'sb.Append(Hex(output(2)).PadLeft(2, CChar("0")))
+                        'sb.Append(Hex(output(3)).PadLeft(2, CChar("0")))
+                        'Debug.WriteLine(sb.ToString & " suppressed for " & .Username)
+                        consoleOutReason &= " (" & .IP & ")"
+                        Output(consoleOut & consoleOutReason, LogDestination.none, LogSeverity.info, ConsoleColor.Red)
                     End If
                 End If
             End With
