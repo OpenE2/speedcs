@@ -427,7 +427,7 @@ Public Class Server
                                                 Case "nickname"
                                                     If s.Nickname.Equals(l(1)) = False Then
                                                         s.Nickname = l(1)
-                                                        nickname = s.Nickname
+                                                        'nickname = s.Nickname
                                                         settingschanged = True
                                                     End If
                                                 Case "hostname"
@@ -478,32 +478,46 @@ Public Class Server
                                                         settingschanged = True
                                                     End If
                                                 Case "supportedCAIDs"
-                                                    Dim sCAIDs() As String = l(1).Split(CChar(","))
-                                                    If sCAIDs.Length > 0 Then
-                                                        s.supportedCAID.Clear()
-                                                        For i As Integer = 0 To sCAIDs.Length - 1
-                                                            Dim iCAID As UInt16 = CUShort("&H" & sCAIDs(i))
-                                                            If Not s.supportedCAID.Contains(iCAID) Then
-                                                                s.supportedCAID.Add(iCAID)
+                                                    If s.supportedCAID.Equals(l(1)) = False Then
+                                                        If Not l(1).Length = 0 Then
+                                                            Dim sCAIDs() As String = l(1).Split(CChar(","))
+                                                            If sCAIDs.Length > 0 Then
+                                                                s.supportedCAID.Clear()
+                                                                For i As Integer = 0 To sCAIDs.Length - 1
+                                                                    Dim iCAID As UInt16 = CUShort("&H" & sCAIDs(i))
+                                                                    If Not s.supportedCAID.Contains(iCAID) Then
+                                                                        s.supportedCAID.Add(iCAID)
+                                                                    End If
+                                                                Next
                                                             End If
-                                                        Next
+                                                        Else
+                                                            s.supportedCAID.Clear()
+                                                        End If
+                                                        settingschanged = True
                                                     End If
                                                 Case "supportedSRVIDs"
-                                                    Dim sSRVIDs() As String = l(1).Split(CChar(","))
-                                                    If sSRVIDs.Length > 0 Then
-                                                        s.supportedSRVID.Clear()
-                                                        For i As Integer = 0 To sSRVIDs.Length - 1
-                                                            Dim iSRVID As UInt16 = CUShort("&H" & sSRVIDs(i))
-                                                            If Not s.supportedCAID.Contains(iSRVID) Then
-                                                                s.supportedSRVID.Add(iSRVID)
+                                                    If s.supportedSRVID.Equals(l(1)) = False Then
+                                                        If Not l(1).Length = 0 Then
+                                                            Dim sSRVIDs() As String = l(1).Split(CChar(","))
+                                                            If sSRVIDs.Length > 0 Then
+                                                                s.supportedSRVID.Clear()
+                                                                For i As Integer = 0 To sSRVIDs.Length - 1
+                                                                    Dim iSRVID As UInt16 = CUShort("&H" & sSRVIDs(i))
+                                                                    If Not s.supportedSRVID.Contains(iSRVID) Then
+                                                                        s.supportedSRVID.Add(iSRVID)
+                                                                    End If
+                                                                Next
                                                             End If
-                                                        Next
+                                                        Else
+                                                            s.supportedSRVID.Clear()
+                                                        End If
+                                                        settingschanged = True
                                                     End If
                                                 Case "remove"
-                                                    deleteEntry = True
-                                                    settingschanged = True
+                                                        deleteEntry = True
+                                                        settingschanged = True
                                                 Case Else
-                                                    Output("Not Handled:" & l(0))
+                                                        Output("Not Handled:" & l(0))
                                             End Select
                                         End If
                                     Next
@@ -537,6 +551,9 @@ Public Class Server
                             sMessage.Append("value='0'>No</option>")
                             sMessage.Append("</select>")
                             sMessage.Append("</td></tr>")
+                            If s.Nickname = String.Empty Then
+                                s.Nickname = s.Hostname
+                            End If
                             sMessage.Append("<tr><td>Nickname<td><td><input type='text' name='nickname' value='" & s.Nickname & "'></td></tr>")
                             sMessage.Append("<tr><td>Hostname<td><td><input type='text' name='hostname' value='" & s.Hostname & "'></td></tr>")
                             sMessage.Append("<tr><td>Port<td><td><input type='text' name='port' value='" & s.Port & "'></td></tr>")
@@ -754,7 +771,7 @@ Public Class Server
                             sMessage.Append("</td></tr>")
                             sMessage.Append("<tr><td>AU Server<td><td>")
                             sMessage.Append("<select name='auserver'>")
-                            sMessage.Append("<option value=''></option>")
+                            sMessage.Append("<option value=''>None</option>")
                             For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
                                 If s.SendEMMs Then
                                     sMessage.Append("<option ")
@@ -782,7 +799,7 @@ Public Class Server
                             sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & c.Username & "'></td></tr>")
                             sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & c.Password & "'></td></tr>")
                             sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
-                            sMessage.Append("<tr><td colspan=2><input type='submit' value='Save'></td></tr>")
+                            sMessage.Append("<tr><td colspan=3><input type='submit' value='Save'></td></tr>")
                             sMessage.Append("</form>")
                             Exit For
                         End If
