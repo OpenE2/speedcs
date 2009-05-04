@@ -427,7 +427,7 @@ Public Class Server
                                                 Case "nickname"
                                                     If s.Nickname.Equals(l(1)) = False Then
                                                         s.Nickname = l(1)
-                                                        'nickname = s.Nickname
+                                                        nickname = s.Nickname
                                                         settingschanged = True
                                                     End If
                                                 Case "hostname"
@@ -447,7 +447,7 @@ Public Class Server
                                                         settingschanged = True
                                                     End If
                                                 Case "port"
-                                                    If s.Port.Equals(l(1)) = False Then
+                                                    If Not s.Port = CDbl(l(1)) Then
                                                         s.Port = CInt(l(1))
                                                         port = s.Port
                                                         settingschanged = True
@@ -478,8 +478,15 @@ Public Class Server
                                                         settingschanged = True
                                                     End If
                                                 Case "supportedCAIDs"
-                                                    If s.supportedCAID.Equals(l(1)) = False Then
-                                                        If Not l(1).Length = 0 Then
+                                                    Dim strTmp As String
+                                                    If s.supportedCAID.Count > 0 Then
+                                                        For Each iCAID In s.supportedCAID
+                                                            strTmp &= Hex(iCAID).PadLeft(4, CChar("0")) & ","
+                                                        Next
+                                                        strTmp = strTmp.Substring(0, strTmp.Length - 1)
+                                                    End If
+                                                    If Not strTmp = l(1) Then
+                                                        If l(1).Length > 0 Then
                                                             Dim sCAIDs() As String = l(1).Split(CChar(","))
                                                             If sCAIDs.Length > 0 Then
                                                                 s.supportedCAID.Clear()
@@ -496,8 +503,15 @@ Public Class Server
                                                         settingschanged = True
                                                     End If
                                                 Case "supportedSRVIDs"
-                                                    If s.supportedSRVID.Equals(l(1)) = False Then
-                                                        If Not l(1).Length = 0 Then
+                                                    Dim strTmp As String
+                                                    If s.supportedSRVID.Count > 0 Then
+                                                        For Each iSRVID In s.supportedSRVID
+                                                            strTmp &= Hex(iSRVID).PadLeft(4, CChar("0")) & ","
+                                                        Next
+                                                        strTmp = strTmp.Substring(0, strTmp.Length - 1)
+                                                    End If
+                                                    If Not strTmp = l(1) Then
+                                                        If l(1).Length > 0 Then
                                                             Dim sSRVIDs() As String = l(1).Split(CChar(","))
                                                             If sSRVIDs.Length > 0 Then
                                                                 s.supportedSRVID.Clear()
@@ -514,10 +528,10 @@ Public Class Server
                                                         settingschanged = True
                                                     End If
                                                 Case "remove"
-                                                        deleteEntry = True
-                                                        settingschanged = True
+                                                    deleteEntry = True
+                                                    settingschanged = True
                                                 Case Else
-                                                        Output("Not Handled:" & l(0))
+                                                    Output("Not Handled:" & l(0))
                                             End Select
                                         End If
                                     Next
@@ -1417,7 +1431,7 @@ Public Class Server
         sMessage.Append("<a href='servers.html?add=true'>Add Server</a>")
         sMessage.Append("<table border=1>")
         sMessage.Append("<tr>")
-        sMessage.Append("<th>Active</th><th>IP</th><th>Port</th><th>Username</th><th>UserCRC</th>")
+        sMessage.Append("<th>Active</th><th>Nickname</th><th>Hostname/IP</th><th>Port</th><th>Username</th><th>UserCRC</th>")
         sMessage.Append("</tr>")
         For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
             sMessage.Append("<tr>")

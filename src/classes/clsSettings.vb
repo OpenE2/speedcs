@@ -360,7 +360,7 @@ End Class
 #Region "CardServer"
     Public Class clsCardServer
         Public Active As Boolean = False
-        Public Nickname As String = String.Empty
+        Public Nickname As String = "localhost"
         Public Hostname As String = "localhost"
         Public Port As Integer = 20248
         Public SendBroadcasts As Boolean = False
@@ -370,8 +370,8 @@ End Class
         Public IsSCS As Boolean = False
         Public acceptedCAID As List(Of UInt16)
 
-        Public supportedCAID As List(Of UInt16) 'Supported over Settings
-        Public supportedSRVID As List(Of UInt16) 'Supported over Settings
+        Public supportedCAID As New List(Of UInt16) 'Supported over Settings
+        Public supportedSRVID As New List(Of UInt16) 'Supported over Settings
 
         <XmlIgnore()> Public deniedSRVIDCAID As New List(Of UInt32) 'Rejected over Server behavior
 
