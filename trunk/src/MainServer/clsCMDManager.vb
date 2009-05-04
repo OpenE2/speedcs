@@ -529,16 +529,15 @@ Public Class clsCMDManager
         Dim canceled As Boolean = False
 
         Dim consoleOut As String = "S [" _
-                               & Hex(request.iCAID).PadLeft(4, CChar("0")) _
-                               & ":" _
-                               & Hex(request.iSRVID).PadLeft(4, CChar("0")) _
-                               & "] -> " 
+                                   & Hex(request.iCAID).PadLeft(4, CChar("0")) _
+                                   & ":" _
+                                   & Hex(request.iSRVID).PadLeft(4, CChar("0")) _
+                                   & "] -> "
 
-
+        Dim consoleOutReason As String = " unknown"
 
         For Each udpserv As clsUDPIO In udpServers
-            Dim consoleOutReason As String = " unknown"
-
+            canceled = False
             With udpserv.serverobject
 
                 If .Active Then 'If not Disabled by Serversettings
@@ -564,20 +563,14 @@ Public Class clsCMDManager
 
                     If Not .supportedCAID.Contains(request.iCAID) And Not .supportedCAID.Count = 0 Then 'CAID not Supported by Serversettings and CAID List not Empty
                         canceled = True
-
-                        'Output("S CaID [" _
-                        '       & Hex(request.iCAID).PadLeft(4, CChar("0")) _
-                        '       & "] Denied in Server Config!" _
-                        '       & "", LogDestination.none, LogSeverity.info, ConsoleColor.Red)
-                        consoleOut &= "CAID"
-                        consoleOutReason = " denied CAID"
+                        'consoleOut &= "CAID"
+                        consoleOutReason = " Denied in Server Config!"
                     End If
 
                     If Not .supportedSRVID.Contains(request.iSRVID) And Not .supportedSRVID.Count = 0 Then 'Srvid not Supported by Serversettings and Srvid List not empty
                         canceled = True
-
-                        consoleOut &= ", SRVID"
-                        consoleOutReason = " denied SRVID"
+                        'consoleOut &= "SRVID"
+                        consoleOutReason = " Denied in Server Config!"
                     End If
 
                     If Not .SendECMs Then 'Not allowed send Request by Serversettings
@@ -596,32 +589,35 @@ Public Class clsCMDManager
                     End If
 
                     If Not canceled Then
-                        Using ms As New MemoryStream
-                            Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
-                            Array.Reverse(ucrcbytes)
-                            ms.Write(ucrcbytes, 0, 4)
-                            Dim encrypted() As Byte = AESCrypt.Encrypt(request.PlainMessage, .MD5_Password)
-                            ms.Write(encrypted, 0, encrypted.Length)
-                            udpserv.SendUDPMessage(ms.ToArray, _
-                                                   Net.IPAddress.Parse(udpserv.serverobject.IP), _
-                                                   udpserv.serverobject.Port)
-                        End Using
-                    Else
-                        'Dim sb As New StringBuilder
-                        'Dim output() As Byte = BitConverter.GetBytes(request.srvidcaid)
-                        'sb.Append(Hex(output(0)).PadLeft(2, CChar("0")))
-                        'sb.Append(Hex(output(1)).PadLeft(2, CChar("0")))
-                        'sb.Append(":")
-                        'sb.Append(Hex(output(2)).PadLeft(2, CChar("0")))
-                        'sb.Append(Hex(output(3)).PadLeft(2, CChar("0")))
-                        'Debug.WriteLine(sb.ToString & " suppressed for " & .Username)
-                        consoleOutReason &= " (" & .IP & ")"
-                        Output(consoleOut & consoleOutReason, LogDestination.none, LogSeverity.info, ConsoleColor.Red)
+
+                        If Not .deniedSRVIDCAID.Contains(request.srvidcaid) Then
+                            Using ms As New MemoryStream
+                                Dim ucrcbytes() As Byte = BitConverter.GetBytes(.UCRC)
+                                Array.Reverse(ucrcbytes)
+                                ms.Write(ucrcbytes, 0, 4)
+                                Dim encrypted() As Byte = AESCrypt.Encrypt(request.PlainMessage, .MD5_Password)
+                                ms.Write(encrypted, 0, encrypted.Length)
+                                udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
+                            End Using
+                            canceled = False
+                            Exit For
+                        Else
+                            consoleOutReason &= " (" & .IP & ")"
+                            Output(consoleOut & consoleOutReason, LogDestination.none, LogSeverity.info, ConsoleColor.Red)
+                        End If
                     End If
+
                 End If
             End With
         Next
 
+        If canceled Then
+            Output(consoleOut & consoleOutReason, LogDestination.none, LogSeverity.info, ConsoleColor.Red)
+        End If
+
+        'Catch ex As Exception
+
+        'End Try
     End Sub
 
     Private Sub SendBroadcast()
