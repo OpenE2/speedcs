@@ -413,8 +413,7 @@ Public Class Server
                         For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
                             If s.Hostname.Equals(hostname) And s.Port.Equals(port) Then
                                 'Speichern der neuen Einstellungen
-                                Dim decStr As String = System.Web.HttpUtility.UrlDecode(sbuffer.ToString)
-                                Dim tmp() As String = Split(decStr, vbCrLf & vbCrLf)
+                                Dim tmp() As String = Split(sbuffer.ToString, vbCrLf & vbCrLf)
                                 If tmp.Length > 1 Then
                                     tmp = Split(tmp(1), "&")
                                     Dim settingschanged As Boolean = False
@@ -425,10 +424,16 @@ Public Class Server
                                         If l.Length = 2 Then
                                             Select Case l(0)
                                                 Case "nickname"
-                                                    If s.Nickname.Equals(l(1)) = False Then
-                                                        s.Nickname = l(1)
-                                                        nickname = s.Nickname
-                                                        settingschanged = True
+                                                    If s.Nickname.Equals(System.Web.HttpUtility.UrlDecode(l(1))) = False Then
+                                                        ' Check if # (%23), % (%25), & (%26), / (%2F), \ (%5C), § (%A7), ß (%DF), ä (%E4), Ä (%C4), ö (%F6), Ö (%D6), ü (%FC) and Ü (%DC) character exist in User Input and Return without Saving!
+                                                        If CBool(InStr(l(1), "%23", CompareMethod.Text)) Or CBool(InStr(l(1), "%25", CompareMethod.Text)) Or CBool(InStr(l(1), "%26", CompareMethod.Text)) Or CBool(InStr(l(1), "%2F", CompareMethod.Text)) Or CBool(InStr(l(1), "%5C", CompareMethod.Text)) Or CBool(InStr(l(1), "%A7", CompareMethod.Text)) Or CBool(InStr(l(1), "%DF", CompareMethod.Text)) Or CBool(InStr(l(1), "%E4", CompareMethod.Text)) Or CBool(InStr(l(1), "%C4", CompareMethod.Text)) Or CBool(InStr(l(1), "%F6", CompareMethod.Text)) Or CBool(InStr(l(1), "%D6", CompareMethod.Text)) Or CBool(InStr(l(1), "%FC", CompareMethod.Text)) Or CBool(InStr(l(1), "%DC", CompareMethod.Text)) Then
+                                                            'Nothing
+                                                        Else
+                                                            l(1) = System.Web.HttpUtility.UrlDecode(l(1))
+                                                            s.Nickname = l(1)
+                                                            nickname = s.Nickname
+                                                            settingschanged = True
+                                                        End If
                                                     End If
                                                 Case "hostname"
                                                     If s.Hostname.Equals(l(1)) = False Then
@@ -437,14 +442,26 @@ Public Class Server
                                                         settingschanged = True
                                                     End If
                                                 Case "username"
-                                                    If s.Username.Equals(l(1)) = False Then
-                                                        s.Username = l(1)
-                                                        settingschanged = True
+                                                    If s.Username.Equals(System.Web.HttpUtility.UrlDecode(l(1))) = False Then
+                                                        ' Check if # (%23), % (%25), & (%26), / (%2F), \ (%5C), § (%A7), ß (%DF), ä (%E4), Ä (%C4), ö (%F6), Ö (%D6), ü (%FC) and Ü (%DC) character exist in User Input and Return without Saving!
+                                                        If CBool(InStr(l(1), "%23", CompareMethod.Text)) Or CBool(InStr(l(1), "%25", CompareMethod.Text)) Or CBool(InStr(l(1), "%26", CompareMethod.Text)) Or CBool(InStr(l(1), "%2F", CompareMethod.Text)) Or CBool(InStr(l(1), "%5C", CompareMethod.Text)) Or CBool(InStr(l(1), "%A7", CompareMethod.Text)) Or CBool(InStr(l(1), "%DF", CompareMethod.Text)) Or CBool(InStr(l(1), "%E4", CompareMethod.Text)) Or CBool(InStr(l(1), "%C4", CompareMethod.Text)) Or CBool(InStr(l(1), "%F6", CompareMethod.Text)) Or CBool(InStr(l(1), "%D6", CompareMethod.Text)) Or CBool(InStr(l(1), "%FC", CompareMethod.Text)) Or CBool(InStr(l(1), "%DC", CompareMethod.Text)) Then
+                                                            'Nothing
+                                                        Else
+                                                            l(1) = System.Web.HttpUtility.UrlDecode(l(1))
+                                                            s.Username = l(1)
+                                                            settingschanged = True
+                                                        End If
                                                     End If
                                                 Case "password"
-                                                    If s.Password.Equals(l(1)) = False Then
-                                                        s.Password = l(1)
-                                                        settingschanged = True
+                                                    If s.Password.Equals(System.Web.HttpUtility.UrlDecode(l(1))) = False Then
+                                                        ' Check if # (%23), % (%25), & (%26), / (%2F), \ (%5C), § (%A7), ß (%DF), ä (%E4), Ä (%C4), ö (%F6), Ö (%D6), ü (%FC) and Ü (%DC) character exist in User Input and Return without Saving!
+                                                        If CBool(InStr(l(1), "%23", CompareMethod.Text)) Or CBool(InStr(l(1), "%25", CompareMethod.Text)) Or CBool(InStr(l(1), "%26", CompareMethod.Text)) Or CBool(InStr(l(1), "%2F", CompareMethod.Text)) Or CBool(InStr(l(1), "%5C", CompareMethod.Text)) Or CBool(InStr(l(1), "%A7", CompareMethod.Text)) Or CBool(InStr(l(1), "%DF", CompareMethod.Text)) Or CBool(InStr(l(1), "%E4", CompareMethod.Text)) Or CBool(InStr(l(1), "%C4", CompareMethod.Text)) Or CBool(InStr(l(1), "%F6", CompareMethod.Text)) Or CBool(InStr(l(1), "%D6", CompareMethod.Text)) Or CBool(InStr(l(1), "%FC", CompareMethod.Text)) Or CBool(InStr(l(1), "%DC", CompareMethod.Text)) Then
+                                                            'Nothing
+                                                        Else
+                                                            l(1) = System.Web.HttpUtility.UrlDecode(l(1))
+                                                            s.Password = l(1)
+                                                            settingschanged = True
+                                                        End If
                                                     End If
                                                 Case "port"
                                                     If Not s.Port = CDbl(l(1)) Then
@@ -721,15 +738,27 @@ Public Class Server
                                         If l.Length = 2 Then
                                             Select Case l(0)
                                                 Case "username"
-                                                    If c.Username.Equals(l(1)) = False Then
-                                                        c.Username = l(1)
-                                                        username = c.Username
-                                                        settingschanged = True
+                                                    If c.Username.Equals(System.Web.HttpUtility.UrlDecode(l(1))) = False Then
+                                                        ' Check if # (%23), % (%25), & (%26), / (%2F), \ (%5C), § (%A7), ß (%DF), ä (%E4), Ä (%C4), ö (%F6), Ö (%D6), ü (%FC) and Ü (%DC) character exist in User Input and Return without Saving!
+                                                        If CBool(InStr(l(1), "%23", CompareMethod.Text)) Or CBool(InStr(l(1), "%25", CompareMethod.Text)) Or CBool(InStr(l(1), "%26", CompareMethod.Text)) Or CBool(InStr(l(1), "%2F", CompareMethod.Text)) Or CBool(InStr(l(1), "%5C", CompareMethod.Text)) Or CBool(InStr(l(1), "%A7", CompareMethod.Text)) Or CBool(InStr(l(1), "%DF", CompareMethod.Text)) Or CBool(InStr(l(1), "%E4", CompareMethod.Text)) Or CBool(InStr(l(1), "%C4", CompareMethod.Text)) Or CBool(InStr(l(1), "%F6", CompareMethod.Text)) Or CBool(InStr(l(1), "%D6", CompareMethod.Text)) Or CBool(InStr(l(1), "%FC", CompareMethod.Text)) Or CBool(InStr(l(1), "%DC", CompareMethod.Text)) Then
+                                                            'Nothing
+                                                        Else
+                                                            l(1) = System.Web.HttpUtility.UrlDecode(l(1))
+                                                            c.Username = l(1)
+                                                            username = c.Username
+                                                            settingschanged = True
+                                                        End If
                                                     End If
                                                 Case "password"
-                                                    If c.Password.Equals(l(1)) = False Then
-                                                        c.Password = l(1)
-                                                        settingschanged = True
+                                                    If c.Password.Equals(System.Web.HttpUtility.UrlDecode(l(1))) = False Then
+                                                        ' Check if # (%23), % (%25), & (%26), / (%2F), \ (%5C), § (%A7), ß (%DF), ä (%E4), Ä (%C4), ö (%F6), Ö (%D6), ü (%FC) and Ü (%DC) character exist in User Input and Return without Saving!
+                                                        If CBool(InStr(l(1), "%23", CompareMethod.Text)) Or CBool(InStr(l(1), "%25", CompareMethod.Text)) Or CBool(InStr(l(1), "%26", CompareMethod.Text)) Or CBool(InStr(l(1), "%2F", CompareMethod.Text)) Or CBool(InStr(l(1), "%5C", CompareMethod.Text)) Or CBool(InStr(l(1), "%A7", CompareMethod.Text)) Or CBool(InStr(l(1), "%DF", CompareMethod.Text)) Or CBool(InStr(l(1), "%E4", CompareMethod.Text)) Or CBool(InStr(l(1), "%C4", CompareMethod.Text)) Or CBool(InStr(l(1), "%F6", CompareMethod.Text)) Or CBool(InStr(l(1), "%D6", CompareMethod.Text)) Or CBool(InStr(l(1), "%FC", CompareMethod.Text)) Or CBool(InStr(l(1), "%DC", CompareMethod.Text)) Then
+                                                            'Nothing
+                                                        Else
+                                                            l(1) = System.Web.HttpUtility.UrlDecode(l(1))
+                                                            c.Password = l(1)
+                                                            settingschanged = True
+                                                        End If
                                                     End If
                                                 Case "auserver"
                                                     If c.AUServer.Equals(l(1)) = False Then

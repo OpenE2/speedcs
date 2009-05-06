@@ -600,6 +600,7 @@ Public Class clsCMDManager
                                 udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
                             End Using
                             canceled = False
+                            Debug.WriteLine("sent -> " & .Nickname)
                             Exit For
                         Else
                             consoleOutReason &= " (" & .IP & ")"

@@ -28,9 +28,15 @@ Public Class clsSettingsGlobal
 #Region "Loading and Saving"
 
     Private filepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
-    Private filename As String = Path.Combine(filepath, "config.xml")
+
 
     Public Function Load() As Boolean
+
+        If Not InstanceDir = "" Then
+            filepath = filepath & "\" & InstanceDir
+        End If
+
+        Dim filename As String = Path.Combine(filepath, "config.xml")
 
         Dim serializer As New XmlSerializer(GetType(clsSettingsGlobal))
         System.IO.Directory.CreateDirectory(filepath)
@@ -53,6 +59,8 @@ Public Class clsSettingsGlobal
     End Function
 
     Public Function Save() As Boolean
+
+        Dim filename As String = Path.Combine(filepath, "config.xml")
 
         Dim fs As New FileStream(filename, FileMode.Create)
         Try
@@ -112,9 +120,15 @@ End Class
 #Region "Loading and Saving"
 
     Private filepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
-    Private filename As String = Path.Combine(filepath, "clients.xml")
+
 
     Public Function Load() As Boolean
+
+        If Not InstanceDir = "" Then
+            filepath = filepath & "\" & InstanceDir
+        End If
+
+        Dim filename As String = Path.Combine(filepath, "clients.xml")
 
         'Wenn die Datei settings.xml noch nicht vorhanden ist,
         'wird versucht die Settings aus der Registry zu laden (Import der Altdaten)
@@ -134,6 +148,8 @@ End Class
     End Function
 
     Public Function Save() As Boolean
+
+        Dim filename As String = Path.Combine(filepath, "clients.xml")
 
         'SaveClients
         Try
@@ -317,9 +333,15 @@ End Class
 #Region "Loading and Saving"
 
     Private filepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
-    Private filename As String = Path.Combine(filepath, "servers.xml")
+
 
     Public Function Load() As Boolean
+
+        If Not InstanceDir = "" Then
+            filepath = filepath & "\" & InstanceDir
+        End If
+
+        Dim filename As String = Path.Combine(filepath, "servers.xml")
 
         Dim serializer As New XmlSerializer(GetType(clsSettingsCardServers))
         System.IO.Directory.CreateDirectory(filepath)
@@ -337,6 +359,8 @@ End Class
     End Function
 
     Public Function Save() As Boolean
+
+        Dim filename As String = Path.Combine(filepath, "servers.xml")
 
         'SaveServers
         Try
@@ -484,9 +508,14 @@ End Class
 #Region "Loading and Saving"
 
     Private filepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
-    Private filename As String = Path.Combine(filepath, "readers.xml")
 
     Public Function Load() As Boolean
+
+        If Not InstanceDir = "" Then
+            filepath = filepath & "\" & InstanceDir
+        End If
+
+        Dim filename As String = Path.Combine(filepath, "readers.xml")
 
         Dim serializer As New XmlSerializer(GetType(clsSettingsCardReaders))
         System.IO.Directory.CreateDirectory(filepath)
@@ -504,6 +533,8 @@ End Class
     End Function
 
     Public Function Save() As Boolean
+
+        Dim filename As String = Path.Combine(filepath, "readers.xml")
 
         'SaveReaders
         Try
