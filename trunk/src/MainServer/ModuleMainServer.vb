@@ -165,6 +165,7 @@ Module ModuleMainServer
 
                         CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
                         Debug.WriteLine("Requests in cachemanager: " & CacheManager.CMD0Requests.Count)
+                        Debug.WriteLine(sClient.lastRequestedService.Name)
 
                     Case CMDType.sCSRequest 'Special sCS Request
                         CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
@@ -297,7 +298,6 @@ Module ModuleMainServer
 
                     For Each s In CfgCardServers.CardServers
                         For Each c In CfgClients.Clients
-                            'Output("DEBUG: " & " c.Name " & c.Username & " c.AUServ " & c.AUServer & " s.Nick " & s.Nickname & " c.act " & c.active)
                             If ((c.AUServer = s.Nickname) And (c.active)) Or ((c.AUServer = "All") And (c.active)) Then
                                 'If c.AUSerial = 0 Then
                                 c.AUSerial = cardSerial
@@ -322,7 +322,7 @@ Module ModuleMainServer
                         If c.AUSerial = cardSerial Then Exit For
                     Next
                 End If
-                'WriteEcmToFile(plainRequest, "CMD5: ")
+                'WriteEMMToFile(plainRequest, "CMD5: ")
 
                 'Else
                 'strServerResult = "EMM Request CMD05 suppressed "
