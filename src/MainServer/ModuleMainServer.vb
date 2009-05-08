@@ -277,56 +277,56 @@ Module ModuleMainServer
                 Dim c As clsSettingsClients.clsClient
                 Dim s As clsSettingsCardServers.clsCardServer
 
-                'If Not plainRequest(1) = &H70 Then
-                For Each c In CfgClients.Clients
-                    If c.logemm Then WriteEmmToFile(plainRequest, "Server: ")
-                    Exit For
-                Next
-
-                'plainRequest = modifyEmm(plainRequest) 'Modify EMM Request for ORF
-
-                strServerResult = "EMM Request CMD05"
-
-                Dim cardSerial As UInt32 = BitConverter.ToUInt32(plainRequest, 40)
-                For Each c In CfgClients.Clients
-                    If c.AUSerial = cardSerial Then serialAlreadyAssigned = True
-                    strServerResult = "EMM Request CMD05 already assigned"
-                    Exit For
-                Next
-
-                If Not serialAlreadyAssigned Then
-
-                    For Each s In CfgCardServers.CardServers
-                        For Each c In CfgClients.Clients
-                            If ((c.AUServer = s.Nickname) And (c.active)) Or ((c.AUServer = "All") And (c.active)) Then
-                                'If c.AUSerial = 0 Then
-                                c.AUSerial = cardSerial
-                                'If DateDiff(DateInterval.Minute, c.AUisActiveSince, Date.Now) > 30 Then
-                                Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(c.Username))
-                                Array.Reverse(ucrcbytes)
-                                Using ms As New MemoryStream
-                                    ms.Write(ucrcbytes, 0, 4)
-                                    Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, c.MD5_Password)
-                                    ms.Write(eArr, 0, eArr.Length)
-                                    UdpClientManager.SendUDPMessage(ms.ToArray, _
-                                                                    Net.IPAddress.Parse(CStr(c.SourceIp)), _
-                                                                    c.SourcePort)
-                                    c.AUisActiveSince = Date.Now
-                                End Using
-                                'End If
-                                strServerResult = "EMM Request CMD05 assigned to '" & c.Username & "'"
-                                Exit For
-                                'End If ' Not c.AUSerial = 0
-                            End If
-                        Next
-                        If c.AUSerial = cardSerial Then Exit For
+                If Not plainRequest(1) = &H70 Then
+                    For Each c In CfgClients.Clients
+                        If c.logemm Then WriteEMMToFile(plainRequest, "Server: ")
+                        Exit For
                     Next
-                End If
-                'WriteEMMToFile(plainRequest, "CMD5: ")
 
-                'Else
-                'strServerResult = "EMM Request CMD05 suppressed "
-                'End If
+                    'plainRequest = modifyEmm(plainRequest) 'Modify EMM Request for ORF
+
+                    strServerResult = "EMM Request CMD05"
+
+                    Dim cardSerial As UInt32 = BitConverter.ToUInt32(plainRequest, 40)
+                    For Each c In CfgClients.Clients
+                        If c.AUSerial = cardSerial Then serialAlreadyAssigned = True
+                        strServerResult = "EMM Request CMD05 already assigned"
+                        Exit For
+                    Next
+
+                    If Not serialAlreadyAssigned Then
+
+                        For Each s In CfgCardServers.CardServers
+                            For Each c In CfgClients.Clients
+                                If ((c.AUServer = s.Nickname) And (c.active)) Or ((c.AUServer = "All") And (c.active)) Then
+                                    If c.AUSerial = 0 Then
+                                        c.AUSerial = cardSerial
+                                        If DateDiff(DateInterval.Minute, c.AUisActiveSince, Date.Now) > 30 Then
+                                            Dim ucrcbytes() As Byte = BitConverter.GetBytes(GetUserCRC(c.Username))
+                                            Array.Reverse(ucrcbytes)
+                                            Using ms As New MemoryStream
+                                                ms.Write(ucrcbytes, 0, 4)
+                                                Dim eArr() As Byte = AESCrypt.Encrypt(plainRequest, c.MD5_Password)
+                                                ms.Write(eArr, 0, eArr.Length)
+                                                UdpClientManager.SendUDPMessage(ms.ToArray, _
+                                                                                Net.IPAddress.Parse(CStr(c.SourceIp)), _
+                                                                                c.SourcePort)
+                                                c.AUisActiveSince = Date.Now
+                                            End Using
+                                        End If
+                                        strServerResult = "EMM Request CMD05 assigned to '" & c.Username & "'"
+                                        Exit For
+                                    End If ' Not c.AUSerial = 0
+                                End If
+                            Next
+                            If c.AUSerial = cardSerial Then Exit For
+                        Next
+                    End If
+                    'WriteEMMToFile(plainRequest, "CMD5: ")
+
+                Else
+                    strServerResult = "EMM Request CMD05 suppressed "
+                End If
 
             Case CMDType.NotFound  'Fehler timeout/notfound whatever?!
                 strServerResult = "not found CMD44"
