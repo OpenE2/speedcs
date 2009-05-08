@@ -32,8 +32,8 @@ Public Class clsSettingsGlobal
 
     Public Function Load() As Boolean
 
-        If Not InstanceDir = "" Then
-            filepath = filepath & "\" & InstanceDir
+        If Not filepath.EndsWith(InstanceDir) Then
+            filepath = Path.Combine(filepath, InstanceDir)
         End If
 
         Dim filename As String = Path.Combine(filepath, "config.xml")
@@ -59,6 +59,10 @@ Public Class clsSettingsGlobal
     End Function
 
     Public Function Save() As Boolean
+
+        If Not filepath.EndsWith(InstanceDir) Then
+            filepath = Path.Combine(filepath, InstanceDir)
+        End If
 
         Dim filename As String = Path.Combine(filepath, "config.xml")
 
@@ -125,7 +129,7 @@ End Class
     Public Function Load() As Boolean
 
         If Not InstanceDir = "" Then
-            filepath = filepath & "\" & InstanceDir
+            filepath = Path.Combine(filepath, InstanceDir)
         End If
 
         Dim filename As String = Path.Combine(filepath, "clients.xml")
@@ -148,6 +152,10 @@ End Class
     End Function
 
     Public Function Save() As Boolean
+
+        If Not filepath.EndsWith(InstanceDir) Then
+            filepath = Path.Combine(filepath, InstanceDir)
+        End If
 
         Dim filename As String = Path.Combine(filepath, "clients.xml")
 
@@ -196,6 +204,7 @@ End Class
         Public AUServer As String = String.Empty
         <XmlIgnore()> Public AUisActiveSince As Date
         <XmlIgnore()> Public AUSerial As UInt32
+        <XmlIgnore()> Public lastRequestedService As clsService
 
         Private _ucrc As UInteger
         Public ReadOnly Property ucrc() As UInteger
@@ -338,7 +347,7 @@ End Class
     Public Function Load() As Boolean
 
         If Not InstanceDir = "" Then
-            filepath = filepath & "\" & InstanceDir
+            filepath = Path.Combine(filepath, InstanceDir)
         End If
 
         Dim filename As String = Path.Combine(filepath, "servers.xml")
@@ -359,6 +368,10 @@ End Class
     End Function
 
     Public Function Save() As Boolean
+
+        If Not filepath.EndsWith(InstanceDir) Then
+            filepath = Path.Combine(filepath, InstanceDir)
+        End If
 
         Dim filename As String = Path.Combine(filepath, "servers.xml")
 
@@ -393,6 +406,7 @@ End Class
         'ToDo: Build IsSCS in Webif
         Public IsSCS As Boolean = False
         Public acceptedCAID As List(Of UInt16)
+        Public AutoBlocked As Boolean = False
 
         Public supportedCAID As New List(Of UInt16) 'Supported over Settings
         Public supportedSRVID As New List(Of UInt16) 'Supported over Settings
@@ -533,6 +547,10 @@ End Class
     End Function
 
     Public Function Save() As Boolean
+
+        If Not filepath.EndsWith(InstanceDir) Then
+            filepath = Path.Combine(filepath, InstanceDir)
+        End If
 
         Dim filename As String = Path.Combine(filepath, "readers.xml")
 
