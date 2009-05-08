@@ -134,8 +134,7 @@ Module ModuleGlobals
 
 #End Region
 
-    Private ECMfilepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
-    Private ECMfilename As String = Path.Combine(ECMfilepath, "EMMlog.txt")
+    Private filepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
 
     Public Sub DebugOutputBytes(ByVal b As Byte(), Optional ByVal prefix As String = "")
         Dim out As String = String.Empty
@@ -145,15 +144,50 @@ Module ModuleGlobals
         Debug.WriteLine(prefix & out)
     End Sub
 
-    Public Sub WriteEmmToFile(ByVal b As Byte(), Optional ByVal prefix As String = "")
+    Public Sub WriteEMMToFile(ByVal b As Byte(), Optional ByVal prefix As String = "")
+        Dim filename As String = Path.Combine(filepath, "EMMlog.txt")
+        If Not filepath.EndsWith(InstanceDir) Then
+            filepath = Path.Combine(filepath, InstanceDir)
+        End If
         Dim out As String = String.Empty
         For i As Integer = 0 To b.Length - 1
             out &= b(i).ToString("X2") & " "
         Next
-        Using fw As New StreamWriter(ECMfilename, True)
+        Using fw As New StreamWriter(filename, True)
             fw.WriteLine(Date.Now.ToString & " " & prefix & out)
         End Using
     End Sub
+
+    Public Sub WriteECMToFile(ByVal b As Byte(), Optional ByVal prefix As String = "")
+        Dim filename As String = Path.Combine(filepath, "ECMlog.txt")
+        If Not filepath.EndsWith(InstanceDir) Then
+            filepath = Path.Combine(filepath, InstanceDir)
+        End If
+        Dim out As String = String.Empty
+        For i As Integer = 0 To b.Length - 1
+            out &= b(i).ToString("X2") & " "
+        Next
+        Using fw As New StreamWriter(filename, True)
+            fw.WriteLine(Date.Now.ToString & " " & prefix & out)
+        End Using
+    End Sub
+
+    Public Function HEX2DEC(ByVal HEX As String) As String
+        Dim position As Integer = HEX.IndexOf("%", 0)
+        While Not CBool(position = -1)
+            Dim strHEX As String = HEX.Substring(position, 3)
+            Dim strConvert As String = strHEX.Replace("%", "")
+            Dim strDEC As Long = Convert.ToInt64(strConvert, 16)
+            If strDEC > 126 Then
+                HEX = HEX.Replace(strHEX, "")
+                position = HEX.IndexOf("%", position)
+            Else
+                HEX = HEX.Replace(strHEX, "&#" & strDEC & ";")
+                position = HEX.IndexOf("%", position)
+            End If
+        End While
+        Return HEX
+    End Function
 
     Public CfgGlobals As New clsSettingsGlobal
     Public CfgClients As New clsSettingsClients

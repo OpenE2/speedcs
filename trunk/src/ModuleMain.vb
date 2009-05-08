@@ -23,7 +23,7 @@ Imports System.Threading
 
 Module ModuleMain
     Public stopAll As Boolean = False
-    Public InstanceDir As String
+    Public InstanceDir As String = ""
 
     Sub Main()
         Console.WindowWidth = 100
@@ -53,34 +53,37 @@ Module ModuleMain
 
             For Each arg As String In Environment.GetCommandLineArgs()
                 If CBool(InStr(UCase(arg), "SPEEDCS", CompareMethod.Text)) Then
-                    GoTo NextArgument
-                End If
-                If CBool(InStr(UCase(arg), "/INSTANCE=", CompareMethod.Text)) Then
-                    InstanceDir = Mid(arg, 11)
-                    Output("Loading Config from Instance Directory: " & InstanceDir)
-                    Exit For
+                    'GoTo NextArgument
                 Else
-                    Output("")
-                    Output("Ivalid Arguments Passed!")
-                    Output("")
-                    Output("Valid Options are:")
-                    Output("")
-                    Output("/INSTANCE=x  : Name or Number of Instance to start")
-                    Output("             : Instance Configuration is automatically created in the")
-                    Output("             : %ProgramData%\SpeedCS\x Folder of the Operating System")
-                    Output("")
-                    Output("/HELP        : Displays this Help")
-                    Output("")
-                    Output("Press ENTER to continue!")
-                    While True
-                        Select Case Console.ReadKey.Key
-                            Case ConsoleKey.Enter
-                                Exit While
-                        End Select
-                    End While
-                    Exit Sub
-                End If
-NextArgument:
+                    If CBool(InStr(UCase(arg), "/INSTANCE=", CompareMethod.Text)) Then
+                        InstanceDir = Mid(arg, 11)
+                        If Not InstanceDir = "" Then
+                            Output("Loading Config from Instance Directory: " & InstanceDir)
+                        End If
+                        Exit For
+                    Else
+                        Output("")
+                        Output("Ivalid Arguments Passed!")
+                        Output("")
+                        Output("Valid Options are:")
+                        Output("")
+                        Output("/INSTANCE=x  : x = Name or Number of Instance to start")
+                        Output("             : Instance Configuration is automatically created in the")
+                        Output("             : %ProgramData%\SpeedCS\x Folder of the Operating System")
+                        Output("")
+                        Output("/HELP        : Displays this Help")
+                        Output("")
+                        Output("Press ENTER to continue!")
+                        While True
+                            Select Case Console.ReadKey.Key
+                                Case ConsoleKey.Enter
+                                    Exit While
+                            End Select
+                        End While
+                        Exit Sub
+                    End If
+                    End If
+                'NextArgument:
             Next arg
 
             'Loading Configs

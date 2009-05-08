@@ -55,7 +55,7 @@ Public Class Server
             r = New Regex("(User|#User)(.*\=)(.*)", RegexOptions.IgnoreCase)
             m = r.Match(line)
             If m.Success Then
-                If m.Groups(3).Value.Trim <> "" Then newuser.Username = m.Groups(3).Value.Trim
+                If m.Groups(3).Value.Trim <> "" Then newuser.Username = HttpUtility.UrlEncode(m.Groups(3).Value.Trim)
                 If CfgClients.Clients.FindByUCRC(newuser.ucrc) Is Nothing Then
                     CfgClients.Clients.Add(newuser)
                     ImportCount += 1
@@ -67,7 +67,7 @@ Public Class Server
             r = New Regex("(Pwd|#Pwd)(.*\=)(.*)", RegexOptions.IgnoreCase)
             m = r.Match(line)
             If m.Success Then
-                newuser.Password = m.Groups(3).Value.Trim
+                newuser.Password = HttpUtility.UrlEncode(m.Groups(3).Value.Trim)
             End If
 
             r = New Regex("(Uniq|#Uniq)(.*\=)(.*)", RegexOptions.IgnoreCase)
@@ -349,7 +349,7 @@ Public Class Server
                             Dim c As clsSettingsClients.clsClient = CfgClients.Clients.FindByUCRC(ucrc)
                             If Not c Is Nothing Then
 
-                                sMessage.Append("<td>" & req.Value.Age & "Sec.</td><td>" & service & "</td><td>" & c.Username & "[" & ucrc.ToString("X4") & "]</td><td>" & Services.GetServiceInfo(service).Name & "</td><td>" & "" & "</td><td>" & "" & "</td>")
+                                sMessage.Append("<td>" & req.Value.Age & "Sec.</td><td>" & service & "</td><td>" & HEX2DEC(c.Username) & "[" & ucrc.ToString("X4") & "]</td><td>" & Services.GetServiceInfo(service).Name & "</td><td>" & "" & "</td><td>" & "" & "</td>")
                             Else
                                 sMessage.Append("<td>" & req.Value.Age & "Sec.</td><td>" & service & "</td><td>" & ucrc.ToString("X4") & "</td><td>" & Services.GetServiceInfo(service).Name & "</td><td>" & "" & "</td><td>" & "" & "</td>")
                             End If
@@ -424,16 +424,9 @@ Public Class Server
                                         If l.Length = 2 Then
                                             Select Case l(0)
                                                 Case "nickname"
-                                                    If s.Nickname.Equals(System.Web.HttpUtility.UrlDecode(l(1))) = False Then
-                                                        ' Check if # (%23), % (%25), & (%26), / (%2F), \ (%5C), § (%A7), ß (%DF), ä (%E4), Ä (%C4), ö (%F6), Ö (%D6), ü (%FC) and Ü (%DC) character exist in User Input and Return without Saving!
-                                                        If CBool(InStr(l(1), "%23", CompareMethod.Text)) Or CBool(InStr(l(1), "%25", CompareMethod.Text)) Or CBool(InStr(l(1), "%26", CompareMethod.Text)) Or CBool(InStr(l(1), "%2F", CompareMethod.Text)) Or CBool(InStr(l(1), "%5C", CompareMethod.Text)) Or CBool(InStr(l(1), "%A7", CompareMethod.Text)) Or CBool(InStr(l(1), "%DF", CompareMethod.Text)) Or CBool(InStr(l(1), "%E4", CompareMethod.Text)) Or CBool(InStr(l(1), "%C4", CompareMethod.Text)) Or CBool(InStr(l(1), "%F6", CompareMethod.Text)) Or CBool(InStr(l(1), "%D6", CompareMethod.Text)) Or CBool(InStr(l(1), "%FC", CompareMethod.Text)) Or CBool(InStr(l(1), "%DC", CompareMethod.Text)) Then
-                                                            'Nothing
-                                                        Else
-                                                            l(1) = System.Web.HttpUtility.UrlDecode(l(1))
-                                                            s.Nickname = l(1)
-                                                            nickname = s.Nickname
-                                                            settingschanged = True
-                                                        End If
+                                                    If s.Nickname.Equals(l(1)) = False Then
+                                                        s.Nickname = l(1)
+                                                        settingschanged = True
                                                     End If
                                                 Case "hostname"
                                                     If s.Hostname.Equals(l(1)) = False Then
@@ -442,26 +435,14 @@ Public Class Server
                                                         settingschanged = True
                                                     End If
                                                 Case "username"
-                                                    If s.Username.Equals(System.Web.HttpUtility.UrlDecode(l(1))) = False Then
-                                                        ' Check if # (%23), % (%25), & (%26), / (%2F), \ (%5C), § (%A7), ß (%DF), ä (%E4), Ä (%C4), ö (%F6), Ö (%D6), ü (%FC) and Ü (%DC) character exist in User Input and Return without Saving!
-                                                        If CBool(InStr(l(1), "%23", CompareMethod.Text)) Or CBool(InStr(l(1), "%25", CompareMethod.Text)) Or CBool(InStr(l(1), "%26", CompareMethod.Text)) Or CBool(InStr(l(1), "%2F", CompareMethod.Text)) Or CBool(InStr(l(1), "%5C", CompareMethod.Text)) Or CBool(InStr(l(1), "%A7", CompareMethod.Text)) Or CBool(InStr(l(1), "%DF", CompareMethod.Text)) Or CBool(InStr(l(1), "%E4", CompareMethod.Text)) Or CBool(InStr(l(1), "%C4", CompareMethod.Text)) Or CBool(InStr(l(1), "%F6", CompareMethod.Text)) Or CBool(InStr(l(1), "%D6", CompareMethod.Text)) Or CBool(InStr(l(1), "%FC", CompareMethod.Text)) Or CBool(InStr(l(1), "%DC", CompareMethod.Text)) Then
-                                                            'Nothing
-                                                        Else
-                                                            l(1) = System.Web.HttpUtility.UrlDecode(l(1))
-                                                            s.Username = l(1)
-                                                            settingschanged = True
-                                                        End If
+                                                    If s.Username.Equals(l(1)) = False Then
+                                                        s.Username = l(1)
+                                                        settingschanged = True
                                                     End If
                                                 Case "password"
-                                                    If s.Password.Equals(System.Web.HttpUtility.UrlDecode(l(1))) = False Then
-                                                        ' Check if # (%23), % (%25), & (%26), / (%2F), \ (%5C), § (%A7), ß (%DF), ä (%E4), Ä (%C4), ö (%F6), Ö (%D6), ü (%FC) and Ü (%DC) character exist in User Input and Return without Saving!
-                                                        If CBool(InStr(l(1), "%23", CompareMethod.Text)) Or CBool(InStr(l(1), "%25", CompareMethod.Text)) Or CBool(InStr(l(1), "%26", CompareMethod.Text)) Or CBool(InStr(l(1), "%2F", CompareMethod.Text)) Or CBool(InStr(l(1), "%5C", CompareMethod.Text)) Or CBool(InStr(l(1), "%A7", CompareMethod.Text)) Or CBool(InStr(l(1), "%DF", CompareMethod.Text)) Or CBool(InStr(l(1), "%E4", CompareMethod.Text)) Or CBool(InStr(l(1), "%C4", CompareMethod.Text)) Or CBool(InStr(l(1), "%F6", CompareMethod.Text)) Or CBool(InStr(l(1), "%D6", CompareMethod.Text)) Or CBool(InStr(l(1), "%FC", CompareMethod.Text)) Or CBool(InStr(l(1), "%DC", CompareMethod.Text)) Then
-                                                            'Nothing
-                                                        Else
-                                                            l(1) = System.Web.HttpUtility.UrlDecode(l(1))
-                                                            s.Password = l(1)
-                                                            settingschanged = True
-                                                        End If
+                                                    If s.Password.Equals(l(1)) = False Then
+                                                        s.Password = l(1)
+                                                        settingschanged = True
                                                     End If
                                                 Case "port"
                                                     If Not s.Port = CDbl(l(1)) Then
@@ -494,15 +475,22 @@ Public Class Server
                                                         s.SendECMs = CBool(l(1))
                                                         settingschanged = True
                                                     End If
+                                                Case "autoblocked"
+                                                    If s.AutoBlocked.Equals(CBool(l(1))) = False Then
+                                                        s.AutoBlocked = CBool(l(1))
+                                                        settingschanged = True
+                                                    End If
                                                 Case "supportedCAIDs"
                                                     Dim strTmp As String
                                                     If s.supportedCAID.Count > 0 Then
                                                         For Each iCAID In s.supportedCAID
                                                             strTmp &= Hex(iCAID).PadLeft(4, CChar("0")) & ","
+                                                            Output("DEBUG: " & strTmp)
                                                         Next
                                                         strTmp = strTmp.Substring(0, strTmp.Length - 1)
                                                     End If
-                                                    If Not strTmp = l(1) Then
+                                                    If Not strTmp = HttpUtility.UrlDecode(l(1)) Then
+                                                        l(1) = HttpUtility.UrlDecode(l(1))
                                                         If l(1).Length > 0 Then
                                                             Dim sCAIDs() As String = l(1).Split(CChar(","))
                                                             If sCAIDs.Length > 0 Then
@@ -524,10 +512,12 @@ Public Class Server
                                                     If s.supportedSRVID.Count > 0 Then
                                                         For Each iSRVID In s.supportedSRVID
                                                             strTmp &= Hex(iSRVID).PadLeft(4, CChar("0")) & ","
+                                                            Output("DEBUG: " & strTmp)
                                                         Next
                                                         strTmp = strTmp.Substring(0, strTmp.Length - 1)
                                                     End If
-                                                    If Not strTmp = l(1) Then
+                                                    If Not strTmp = HttpUtility.UrlDecode(l(1)) Then
+                                                        l(1) = HttpUtility.UrlDecode(l(1))
                                                         If l(1).Length > 0 Then
                                                             Dim sSRVIDs() As String = l(1).Split(CChar(","))
                                                             If sSRVIDs.Length > 0 Then
@@ -585,7 +575,7 @@ Public Class Server
                             If s.Nickname = String.Empty Then
                                 s.Nickname = s.Hostname
                             End If
-                            sMessage.Append("<tr><td>Nickname<td><td><input type='text' name='nickname' value='" & s.Nickname & "'></td></tr>")
+                            sMessage.Append("<tr><td>Nickname<td><td><input type='text' name='nickname' value='" & HEX2DEC(s.Nickname) & "'></td></tr>")
                             sMessage.Append("<tr><td>Hostname<td><td><input type='text' name='hostname' value='" & s.Hostname & "'></td></tr>")
                             sMessage.Append("<tr><td>Port<td><td><input type='text' name='port' value='" & s.Port & "'></td></tr>")
 
@@ -655,25 +645,39 @@ Public Class Server
                             sMessage.Append("</select>")
                             sMessage.Append("</td></tr>")
 
-                            sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & s.Username & "'></td></tr>")
-                            sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & s.Password & "'></td></tr>")
+                            sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & HEX2DEC(s.Username) & "'></td></tr>")
+                            sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & HEX2DEC(s.Password) & "'></td></tr>")
+
+                            sMessage.Append("<tr><td>AutoBlock Failed Requests<td><td>")
+                            sMessage.Append("<select name='autoblocked'>")
+                            sMessage.Append("<option ")
+                            If s.AutoBlocked Then sMessage.Append("selected ")
+                            sMessage.Append("value='1'>Yes</option>")
+                            sMessage.Append("<option ")
+                            If Not s.AutoBlocked Then sMessage.Append("selected ")
+                            sMessage.Append("value='0'>No</option>")
+                            sMessage.Append("</select>")
+                            sMessage.Append("</td></tr>")
+
                             sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
                             sMessage.Append("<tr><td colspan=3><input type='submit' value='Save'></td></tr>")
 
-                            sMessage.Append("<tr><td colspan=3><table border=1><tr><td>autoblocked</td></tr>")
-                            For Each srvidcaid As UInt32 In s.deniedSRVIDCAID
-                                sMessage.Append("<tr><td>")
-                                Dim output() As Byte = BitConverter.GetBytes(srvidcaid)
-                                Dim sid As String = Hex(output(0)).PadLeft(2, CChar("0")) & _
-                                                    Hex(output(1)).PadLeft(2, CChar("0")) & _
-                                                    ":" & _
-                                                    Hex(output(2)).PadLeft(2, CChar("0")) & _
-                                                    Hex(output(3)).PadLeft(2, CChar("0"))
+                            If s.AutoBlocked Then
+                                sMessage.Append("<tr><td colspan=3><table border=1><tr><td>autoblocked</td></tr>")
+                                For Each srvidcaid As UInt32 In s.deniedSRVIDCAID
+                                    sMessage.Append("<tr><td>")
+                                    Dim output() As Byte = BitConverter.GetBytes(srvidcaid)
+                                    Dim sid As String = Hex(output(0)).PadLeft(2, CChar("0")) & _
+                                                        Hex(output(1)).PadLeft(2, CChar("0")) & _
+                                                        ":" & _
+                                                        Hex(output(2)).PadLeft(2, CChar("0")) & _
+                                                        Hex(output(3)).PadLeft(2, CChar("0"))
 
-                                sMessage.Append(sid & "</td><td>")
-                                sMessage.Append(Services.GetServiceInfo(sid).Provider & " - " & Services.GetServiceInfo(sid).Name)
-                                sMessage.Append("</td></tr>")
-                            Next
+                                    sMessage.Append(sid & "</td><td>")
+                                    sMessage.Append(Services.GetServiceInfo(sid).Provider & " - " & Services.GetServiceInfo(sid).Name)
+                                    sMessage.Append("</td></tr>")
+                                Next
+                            End If
                             sMessage.Append("</table></td></tr>")
                             sMessage.Append("</form>")
                             Exit For
@@ -708,7 +712,7 @@ Public Class Server
                     sMessage.Append("</tr>")
                     For Each c As clsSettingsClients.clsClient In CfgClients.Clients
                         sMessage.Append("<tr>")
-                        sMessage.Append("<td>" & c.active & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & c.Username & "</td><td><a href='user.html?username=" & c.Username & "'>Edit</a></td>")
+                        sMessage.Append("<td>" & c.active & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & HEX2DEC(c.Username) & "</td><td><a href='user.html?username=" & c.Username & "'>Edit</a></td>")
                         sMessage.Append("</tr>")
                     Next
                     sMessage.Append("</table>")
@@ -738,27 +742,15 @@ Public Class Server
                                         If l.Length = 2 Then
                                             Select Case l(0)
                                                 Case "username"
-                                                    If c.Username.Equals(System.Web.HttpUtility.UrlDecode(l(1))) = False Then
-                                                        ' Check if # (%23), % (%25), & (%26), / (%2F), \ (%5C), § (%A7), ß (%DF), ä (%E4), Ä (%C4), ö (%F6), Ö (%D6), ü (%FC) and Ü (%DC) character exist in User Input and Return without Saving!
-                                                        If CBool(InStr(l(1), "%23", CompareMethod.Text)) Or CBool(InStr(l(1), "%25", CompareMethod.Text)) Or CBool(InStr(l(1), "%26", CompareMethod.Text)) Or CBool(InStr(l(1), "%2F", CompareMethod.Text)) Or CBool(InStr(l(1), "%5C", CompareMethod.Text)) Or CBool(InStr(l(1), "%A7", CompareMethod.Text)) Or CBool(InStr(l(1), "%DF", CompareMethod.Text)) Or CBool(InStr(l(1), "%E4", CompareMethod.Text)) Or CBool(InStr(l(1), "%C4", CompareMethod.Text)) Or CBool(InStr(l(1), "%F6", CompareMethod.Text)) Or CBool(InStr(l(1), "%D6", CompareMethod.Text)) Or CBool(InStr(l(1), "%FC", CompareMethod.Text)) Or CBool(InStr(l(1), "%DC", CompareMethod.Text)) Then
-                                                            'Nothing
-                                                        Else
-                                                            l(1) = System.Web.HttpUtility.UrlDecode(l(1))
-                                                            c.Username = l(1)
-                                                            username = c.Username
-                                                            settingschanged = True
-                                                        End If
+                                                    If c.Username.Equals(l(1)) = False Then
+                                                        c.Username = l(1)
+                                                        username = c.Username
+                                                        settingschanged = True
                                                     End If
                                                 Case "password"
-                                                    If c.Password.Equals(System.Web.HttpUtility.UrlDecode(l(1))) = False Then
-                                                        ' Check if # (%23), % (%25), & (%26), / (%2F), \ (%5C), § (%A7), ß (%DF), ä (%E4), Ä (%C4), ö (%F6), Ö (%D6), ü (%FC) and Ü (%DC) character exist in User Input and Return without Saving!
-                                                        If CBool(InStr(l(1), "%23", CompareMethod.Text)) Or CBool(InStr(l(1), "%25", CompareMethod.Text)) Or CBool(InStr(l(1), "%26", CompareMethod.Text)) Or CBool(InStr(l(1), "%2F", CompareMethod.Text)) Or CBool(InStr(l(1), "%5C", CompareMethod.Text)) Or CBool(InStr(l(1), "%A7", CompareMethod.Text)) Or CBool(InStr(l(1), "%DF", CompareMethod.Text)) Or CBool(InStr(l(1), "%E4", CompareMethod.Text)) Or CBool(InStr(l(1), "%C4", CompareMethod.Text)) Or CBool(InStr(l(1), "%F6", CompareMethod.Text)) Or CBool(InStr(l(1), "%D6", CompareMethod.Text)) Or CBool(InStr(l(1), "%FC", CompareMethod.Text)) Or CBool(InStr(l(1), "%DC", CompareMethod.Text)) Then
-                                                            'Nothing
-                                                        Else
-                                                            l(1) = System.Web.HttpUtility.UrlDecode(l(1))
-                                                            c.Password = l(1)
-                                                            settingschanged = True
-                                                        End If
+                                                    If c.Password.Equals(l(1)) = False Then
+                                                        c.Password = l(1)
+                                                        settingschanged = True
                                                     End If
                                                 Case "auserver"
                                                     If c.AUServer.Equals(l(1)) = False Then
@@ -819,7 +811,7 @@ Public Class Server
                                 If s.SendEMMs Then
                                     sMessage.Append("<option ")
                                     If c.AUServer.Equals(s.Nickname) Then sMessage.Append("selected ")
-                                    sMessage.Append("value='" & s.Nickname & "'>" & s.Nickname & "</option>")
+                                    sMessage.Append("value='" & HEX2DEC(s.Nickname) & "'>" & HEX2DEC(s.Nickname) & "</option>")
                                 End If
                             Next
                             If c.AUServer.Equals("All") Then
@@ -839,8 +831,8 @@ Public Class Server
                             sMessage.Append("value='0'>No</option>")
                             sMessage.Append("</select>")
                             sMessage.Append("</td></tr>")
-                            sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & c.Username & "'></td></tr>")
-                            sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & c.Password & "'></td></tr>")
+                            sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & HEX2DEC(c.Username) & "'></td></tr>")
+                            sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & HEX2DEC(c.Password) & "'></td></tr>")
                             sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
                             sMessage.Append("<tr><td colspan=3><input type='submit' value='Save'></td></tr>")
                             sMessage.Append("</form>")
@@ -1079,7 +1071,11 @@ Public Class Server
         sMessage.Append("<tr><th>RAM usage</th><td>" & Environment.WorkingSet / 1024 & "KB</td></tr>")
         sMessage.Append("<tr><th>Listen on Port</th><td>" & CfgGlobals.cs357xPort & "</td></tr>")
         sMessage.Append("<tr><th>Working Directory</th><td>" & CurrentDirectory & "</td></tr>")
-        sMessage.Append("<tr><th>Config Directory</th><td>" & System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) & "\" & Application.ProductName & "\" & "</td></tr>")
+        Dim filepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
+        If Not filepath.EndsWith(InstanceDir) Then
+            filepath = Path.Combine(filepath, InstanceDir)
+        End If
+        sMessage.Append("<tr><th>Config Directory</th><td>" & filepath & "\" & "</td></tr>")
         sMessage.Append("<tr><th>Domain</th><td>" & Environment.UserDomainName & "</td></tr>")
         sMessage.Append("<tr><th>Interactive</th><td>" & Environment.UserInteractive & "</td></tr>")
         sMessage.Append("<tr><th>Username</th><td>" & Environment.UserName & "</td></tr>")
@@ -1423,12 +1419,13 @@ Public Class Server
         sMessage.Append(ButtonBar())
         sMessage.Append("<table border=1>")
         sMessage.Append("<tr class='head'>")
-        sMessage.Append("<th>Username</th><th>UserCRC</th><th>Timestamp</th><th>IP</th><th>Port</th><th>AU</th>")
+        sMessage.Append("<th>Username</th><th>UserCRC</th><th>Last Access</th><th>IP</th><th>Port</th><th>AU</th>")
         sMessage.Append("</tr>")
+
         For Each c As clsSettingsClients.clsClient In CfgClients.Clients
             If DateDiff(DateInterval.Second, c.lastrequest, Now) <= 120 Then
                 sMessage.Append("<tr>")
-                sMessage.Append("<td>" & c.Username & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & c.lastrequest & "</td><td>" & c.SourceIp & "</td><td>" & c.SourcePort & "</td><td>" & c.AUServer & "</td>")
+                sMessage.Append("<td>" & HEX2DEC(c.Username) & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & c.lastrequest & "</td><td>" & c.SourceIp & "</td><td>" & c.SourcePort & "</td><td>" & c.AUServer & "</td>")
                 sMessage.Append("</tr>")
             End If
         Next
@@ -1464,7 +1461,7 @@ Public Class Server
         sMessage.Append("</tr>")
         For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
             sMessage.Append("<tr>")
-            sMessage.Append("<td>" & s.Active & "</td><td>" & s.Nickname & "</td><td>" & s.Hostname & "</td><td>" & s.Port & "</td><td>" & s.Username & "</td><td>" & s.UCRC.ToString("X6") & "</td><td><a href='server.html?hostname=" & s.Hostname & "&port=" & s.Port & "'>Edit</a></td>")
+            sMessage.Append("<td>" & s.Active & "</td><td>" & HEX2DEC(s.Nickname) & "</td><td>" & s.Hostname & "</td><td>" & s.Port & "</td><td>" & HEX2DEC(s.Username) & "</td><td>" & s.UCRC.ToString("X6") & "</td><td><a href='server.html?hostname=" & s.Hostname & "&port=" & s.Port & "'>Edit</a></td>")
             sMessage.Append("</tr>")
         Next
         sMessage.Append("</table>")

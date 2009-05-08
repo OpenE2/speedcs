@@ -22,12 +22,15 @@
 Imports System.Security.Cryptography
 Imports System.Text
 Imports System.IO
+Imports System.Web
+
 
 Public Class clsAESCrypt
 
     Public Function GetMD5Array(ByVal value As String) As Byte()
         Dim md5 As New MD5CryptoServiceProvider
-        GetMD5Array = md5.ComputeHash(UTF8Encoding.UTF8.GetBytes(value))
+        value = HEX2DEC(value)
+        GetMD5Array = md5.ComputeHash(UTF8Encoding.UTF8.GetBytes(HttpUtility.HtmlDecode(value)))
         md5.Clear()
     End Function
 
