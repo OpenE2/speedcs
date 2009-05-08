@@ -324,6 +324,11 @@ Public Class clsCMDManager
                 iCAID = BitConverter.ToUInt16(CAID, 0)
                 iCAID = CUShort(Math.Floor(iCAID / 256) + 256 * (iCAID And 255)) 'Convert to Little Endian
             End Using
+
+            'Set last requested Service to client
+            CfgClients.Clients.FindByUCRC(sUCRC).lastRequestedService = _
+            Services.GetServiceInfo(Hex(iCAID).PadLeft(4, CChar("0")) & ":" & Hex(iSRVID).PadLeft(4, CChar("0")))
+
             Using ms As New MemoryStream
                 ms.Write(PlainCMD0Message, 8, 4)
                 srvidcaid = BitConverter.ToUInt32(ms.ToArray, 0)
@@ -533,7 +538,6 @@ Public Class clsCMDManager
                                    & ":" _
                                    & Hex(request.iSRVID).PadLeft(4, CChar("0")) _
                                    & "] -> "
-
         Dim consoleOutReason As String = " unknown"
 
         For Each udpserv As clsUDPIO In udpServers
@@ -583,9 +587,11 @@ Public Class clsCMDManager
                         consoleOutReason = " Avoid loop to UCRC"
                     End If
 
-                    If .deniedSRVIDCAID.Contains(request.srvidcaid) Then 'Not allowed because server returns 44
-                        canceled = True
-                        consoleOutReason = " Server cannot answer"
+                    If .AutoBlocked Then
+                        If .deniedSRVIDCAID.Contains(request.srvidcaid) Then 'Not allowed because server returns 44
+                            canceled = True
+                            consoleOutReason = " Server cannot answer"
+                        End If
                     End If
 
                     If Not canceled Then

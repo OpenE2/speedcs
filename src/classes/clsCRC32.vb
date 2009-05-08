@@ -21,6 +21,7 @@
 
 Imports System.Text
 Imports System.Security.Cryptography
+Imports System.Web
 
 Public Class clsCRC32
     Inherits HashAlgorithm
@@ -155,7 +156,8 @@ Module moduleCRC32
         'Dim ba_Username As Byte() = Encoding.ASCII.GetBytes(username)
         'Dim md5_Username As Byte() = md5.ComputeHash(ba_Username)
         'Hack: UTF8 muß hier glaube ich
-        Dim md5_Username As Byte() = md5.ComputeHash(UTF8Encoding.UTF8.GetBytes(username))
+        username = HEX2DEC(username)
+        Dim md5_Username As Byte() = md5.ComputeHash(UTF8Encoding.UTF8.GetBytes(HttpUtility.HtmlDecode(username)))
         md5.Clear()
         'Dim md5_Username As Byte() = md5.ComputeHash(Encoding.Default.GetBytes(username))
         Dim ucrc As Byte() = crc32.ComputeHash(md5_Username)
