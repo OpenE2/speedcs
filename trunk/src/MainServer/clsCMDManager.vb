@@ -73,7 +73,7 @@ Public Class clsCMDManager
             _Length = PlainCMD1Message(1)
             _CreateDate = Date.Now
             Using ms As New MemoryStream
-                ms.Write(PlainCMD1Message, 8, 8)
+                ms.Write(PlainCMD1Message, 8, 4)
                 ms.Write(PlainCMD1Message, 18, 2) 'Miracle Byte 18+19
                 Key = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
             End Using
@@ -284,7 +284,7 @@ Public Class clsCMDManager
 
         Public ReadOnly Property Dead() As Boolean
             Get
-                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) > 6 Then
+                If DateDiff(DateInterval.Second, _CreateDate, Date.Now) >= 6 Then
                     Return True
                 Else
                     Return False
@@ -304,7 +304,7 @@ Public Class clsCMDManager
             _CreateDate = Date.Now
             UCRC.Add(sUCRC, PlainCMD0Message)
             Using ms As New MemoryStream
-                ms.Write(PlainCMD0Message, 8, 8)
+                ms.Write(PlainCMD0Message, 8, 4)
                 ms.Write(PlainCMD0Message, 18, 2) 'Miracle Byte 18+19
                 Key = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
             End Using
@@ -328,6 +328,10 @@ Public Class clsCMDManager
             'Set last requested Service to client
             CfgClients.Clients.FindByUCRC(sUCRC).lastRequestedService = _
             Services.GetServiceInfo(Hex(iCAID).PadLeft(4, CChar("0")) & ":" & Hex(iSRVID).PadLeft(4, CChar("0")))
+
+            'Set last requested CAID:SRVID to cliet
+            CfgClients.Clients.FindByUCRC(sUCRC).lastRequestedCAIDSRVID = _
+            Hex(iCAID).PadLeft(4, CChar("0")) & ":" & Hex(iSRVID).PadLeft(4, CChar("0"))
 
             Using ms As New MemoryStream
                 ms.Write(PlainCMD0Message, 8, 4)

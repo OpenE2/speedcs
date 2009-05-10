@@ -155,13 +155,14 @@ Module ModuleMainServer
                 Select Case CType(plainRequest(0), CMDType)
 
                     Case CMDType.ECMRequest  'Request
+                        'If sClient.logecm Then WriteECMToFile(plainRequest, "Client: " & sClient.Username & " - ")
+                        'WriteECMToFile(plainRequest, "Client: ")
                         If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
                         If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
                         sClient.lastrequest = Now
                         'Cache.Requests.Add(ecm)
                         'strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
                         If Not emmSender.Enabled Then emmSender.Start()
-
 
                         CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
                         Debug.WriteLine("Requests in cachemanager: " & CacheManager.CMD0Requests.Count)
@@ -184,14 +185,11 @@ Module ModuleMainServer
 
                     Case CMDType.EMMResponse
                         Dim emmCRC As UInt32 = BitConverter.ToUInt32(plainRequest, 4)
-                        For Each c In CfgClients.Clients
-                            If sClient.logemm Then WriteEmmToFile(plainRequest, "Client: ")
-                            Exit For
-                        Next
                         With emmStack
                             SyncLock emmStack
                                 If Not .ContainsKey(emmCRC) Then .Add(emmCRC, plainRequest)
                             End SyncLock
+                            If sClient.logemm Then WriteEMMToFile(plainRequest, "Client: " & sClient.Username & " - ")
                             logColor = ConsoleColor.Cyan
                             strClientResult = "Emm Client Response. Stack: " & .Count
                         End With
@@ -251,6 +249,7 @@ Module ModuleMainServer
                 strServerResult = " CMD00 shouldn't be here"
 
             Case CMDType.ECMResponse  'Answer
+                'WriteECMToFile(plainRequest, "Server: ")
                 CacheManager.CMD1Answers.Add(plainRequest, message.sourceIP, message.sourcePort)
                 Debug.WriteLine("incoming from " & message.sourceIP & " - Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
 
@@ -282,8 +281,6 @@ Module ModuleMainServer
                         If c.logemm Then WriteEMMToFile(plainRequest, "Server: ")
                         Exit For
                     Next
-
-                    'plainRequest = modifyEmm(plainRequest) 'Modify EMM Request for ORF
 
                     strServerResult = "EMM Request CMD05"
 
@@ -322,7 +319,6 @@ Module ModuleMainServer
                             If c.AUSerial = cardSerial Then Exit For
                         Next
                     End If
-                    'WriteEMMToFile(plainRequest, "CMD5: ")
 
                 Else
                     strServerResult = "EMM Request CMD05 suppressed "
@@ -331,8 +327,10 @@ Module ModuleMainServer
             Case CMDType.NotFound  'Fehler timeout/notfound whatever?!
                 strServerResult = "not found CMD44"
                 With mSender.serverobject
-                    If Not .deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
-                        .deniedSRVIDCAID.Add(ecm.srvidcaid)
+                    If .AutoBlocked Then
+                        If Not .deniedSRVIDCAID.Contains(ecm.srvidcaid) Then
+                            .deniedSRVIDCAID.Add(ecm.srvidcaid)
+                        End If
                     End If
                 End With
                 DebugOutputBytes(plainRequest, "CMD44: ")
@@ -395,14 +393,9 @@ Module ModuleMainServer
 
     Private Function modifyEmm(ByVal value() As Byte) As Byte()
         Dim retVal() As Byte = value
-        'If retVal(15) = &H4 Then
-        '    retVal(15) = &H0
-        '    WriteEmmToFile(retVal, "ORFmod: ")
-        'End If
-
         If retVal(8) = &H32 And retVal(10) = &HD And retVal(11) = &H5 And retVal(15) = &H4 Then
             retVal(15) = &H0
-            WriteEmmToFile(retVal, "SRVMod: ")
+            WriteEMMToFile(retVal, "SRVMod: ")
         End If
 
         If retVal(8) = &H0 And retVal(10) = &HD And retVal(11) = &H5 And retVal(15) = &H0 Then
@@ -421,8 +414,8 @@ Module ModuleMainServer
         Dim udpClient As clsUDPIO = TryCast(sender, clsUDPIO)
         If Not udpClient Is Nothing Then
             If Not udpClient.endWasRequested And udpClient.hadError Then
-                udpClient.CloseUDPConnection()
-                udpClient.OpenUDPConnection()
+                StopUDP()
+                StartUDP()
             End If
         Else
 
