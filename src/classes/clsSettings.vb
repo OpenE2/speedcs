@@ -184,6 +184,7 @@ End Class
     Public Class clsClient
         Public active As Boolean = False
         Public logemm As Boolean = False
+        Public logecm As Boolean = False
         Private _Username As String = ""
         Private _Password As String = ""
         Public Unique As String = ""
@@ -205,6 +206,7 @@ End Class
         <XmlIgnore()> Public AUisActiveSince As Date
         <XmlIgnore()> Public AUSerial As UInt32
         <XmlIgnore()> Public lastRequestedService As clsService
+        <XmlIgnore()> Public lastRequestedCAIDSRVID As String
 
         Private _ucrc As UInteger
         Public ReadOnly Property ucrc() As UInteger

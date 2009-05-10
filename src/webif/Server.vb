@@ -662,22 +662,22 @@ Public Class Server
                             sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
                             sMessage.Append("<tr><td colspan=3><input type='submit' value='Save'></td></tr>")
 
-                            If s.AutoBlocked Then
-                                sMessage.Append("<tr><td colspan=3><table border=1><tr><td>autoblocked</td></tr>")
-                                For Each srvidcaid As UInt32 In s.deniedSRVIDCAID
-                                    sMessage.Append("<tr><td>")
-                                    Dim output() As Byte = BitConverter.GetBytes(srvidcaid)
-                                    Dim sid As String = Hex(output(0)).PadLeft(2, CChar("0")) & _
-                                                        Hex(output(1)).PadLeft(2, CChar("0")) & _
-                                                        ":" & _
-                                                        Hex(output(2)).PadLeft(2, CChar("0")) & _
-                                                        Hex(output(3)).PadLeft(2, CChar("0"))
+                            'If s.AutoBlocked Then
+                            sMessage.Append("<tr><td colspan=3><table border=1><tr><td>autoblocked</td></tr>")
+                            For Each srvidcaid As UInt32 In s.deniedSRVIDCAID
+                                sMessage.Append("<tr><td>")
+                                Dim output() As Byte = BitConverter.GetBytes(srvidcaid)
+                                Dim sid As String = Hex(output(0)).PadLeft(2, CChar("0")) & _
+                                                    Hex(output(1)).PadLeft(2, CChar("0")) & _
+                                                    ":" & _
+                                                    Hex(output(2)).PadLeft(2, CChar("0")) & _
+                                                    Hex(output(3)).PadLeft(2, CChar("0"))
 
-                                    sMessage.Append(sid & "</td><td>")
-                                    sMessage.Append(Services.GetServiceInfo(sid).Provider & " - " & Services.GetServiceInfo(sid).Name)
-                                    sMessage.Append("</td></tr>")
-                                Next
-                            End If
+                                sMessage.Append(sid & "</td><td>")
+                                sMessage.Append(Services.GetServiceInfo(sid).Provider & " - " & Services.GetServiceInfo(sid).Name)
+                                sMessage.Append("</td></tr>")
+                            Next
+                            'End If
                             sMessage.Append("</table></td></tr>")
                             sMessage.Append("</form>")
                             Exit For
@@ -767,6 +767,11 @@ Public Class Server
                                                         c.logemm = CBool(l(1))
                                                         settingschanged = True
                                                     End If
+                                                Case "logecm"
+                                                    If c.logecm.Equals(CBool(l(1))) = False Then
+                                                        c.logecm = CBool(l(1))
+                                                        settingschanged = True
+                                                    End If
                                                 Case "remove"
                                                     deleteEntry = True
                                                     settingschanged = True
@@ -821,6 +826,7 @@ Public Class Server
                             End If
                             sMessage.Append("</select>")
                             sMessage.Append("</td></tr>")
+
                             sMessage.Append("<tr><td>Log EMM<td><td>")
                             sMessage.Append("<select name='logemm'>")
                             sMessage.Append("<option ")
@@ -831,6 +837,18 @@ Public Class Server
                             sMessage.Append("value='0'>No</option>")
                             sMessage.Append("</select>")
                             sMessage.Append("</td></tr>")
+
+                            sMessage.Append("<tr><td>Log ECM<td><td>")
+                            sMessage.Append("<select name='logecm'>")
+                            sMessage.Append("<option ")
+                            If c.logecm Then sMessage.Append("selected ")
+                            sMessage.Append("value='1'>Yes</option>")
+                            sMessage.Append("<option ")
+                            If Not c.logecm Then sMessage.Append("selected ")
+                            sMessage.Append("value='0'>No</option>")
+                            sMessage.Append("</select>")
+                            sMessage.Append("</td></tr>")
+
                             sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & HEX2DEC(c.Username) & "'></td></tr>")
                             sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & HEX2DEC(c.Password) & "'></td></tr>")
                             sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
@@ -1419,13 +1437,13 @@ Public Class Server
         sMessage.Append(ButtonBar())
         sMessage.Append("<table border=1>")
         sMessage.Append("<tr class='head'>")
-        sMessage.Append("<th>Username</th><th>UserCRC</th><th>Last Access</th><th>Last Channel</th><th>IP</th><th>Port</th><th>AU</th>")
+        sMessage.Append("<th>Username</th><th>UserCRC</th><th>Last Access</th><th>Last Channel</th><th>CAID:SRVID</th><th>IP</th><th>Port</th><th>AU</th>")
         sMessage.Append("</tr>")
 
         For Each c As clsSettingsClients.clsClient In CfgClients.Clients
             If DateDiff(DateInterval.Second, c.lastrequest, Now) <= 120 Then
                 sMessage.Append("<tr>")
-                sMessage.Append("<td>" & HEX2DEC(c.Username) & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & c.lastrequest & "</td><td>" & c.lastRequestedService.Provider & " - " & c.lastRequestedService.Name & "</td><td>" & c.SourceIp & "</td><td>" & c.SourcePort & "</td><td>" & c.AUServer & "</td>")
+                sMessage.Append("<td>" & HEX2DEC(c.Username) & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & c.lastrequest & "</td><td>" & c.lastRequestedService.Provider & " - " & c.lastRequestedService.Name & "</td><td>" & c.lastRequestedCAIDSRVID & "</td><td>" & c.SourceIp & "</td><td>" & c.SourcePort & "</td><td>" & c.AUServer & "</td>")
                 sMessage.Append("</tr>")
             End If
         Next

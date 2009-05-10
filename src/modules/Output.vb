@@ -59,6 +59,9 @@ Module OutputModule
         Select Case dst
             Case LogDestination.file
                 Dim LogFilePath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
+                If Not LogFilePath.EndsWith(InstanceDir) Then
+                    LogFilePath = Path.Combine(LogFilePath, InstanceDir)
+                End If
                 Dim LogFileName As String = Path.Combine(LogFilePath, Application.ProductName & ".log")
                 Try
                     Dim fs As New StreamWriter(LogFileName, True)
