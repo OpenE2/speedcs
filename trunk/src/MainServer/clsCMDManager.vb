@@ -205,7 +205,7 @@ Public Class clsCMDManager
                 Dim a As New clsCMD1Answer(PlainCMD1Message, IP, port)
                 If Not Me.ContainsKey(a.Key) Then
                     Me.Add(a.Key, a)
-                    Dim IDs As String = Hex(a.iCAID).PadLeft(4, CChar("0")) & ":" & Hex(a.iSRVID).PadLeft(4, CChar("0"))
+                    Dim IDs As String = Hex(a.iCAID).PadLeft(4, CChar("0")) & ":" & Hex(a.iSRVID).PadLeft(4, CChar("0")) & ":" & Hex(a.iPROVID).PadLeft(6, CChar("0"))
                     Output("Add CMD1 from Broadcast [" & IDs & "] " & Services.GetServiceInfo(IDs).Name, LogDestination.none, LogSeverity.info, ConsoleColor.DarkYellow)
                     'Threading.Thread.Sleep(50)
                     RaiseEvent GotCommand(a, a.CMD)
@@ -446,6 +446,8 @@ Public Class clsCMDManager
                                & Hex(request.iCAID).PadLeft(4, CChar("0")) _
                                & ":" _
                                & Hex(request.iSRVID).PadLeft(4, CChar("0")) _
+                               & ":" _
+                               & Hex(request.iPROVID).PadLeft(6, CChar("0")) _
                                & "] found in " _
                                & Environment.TickCount - request.IncomingTimeStamp _
                                & "ms", LogDestination.none, LogSeverity.info, ConsoleColor.Green)
@@ -541,6 +543,8 @@ Public Class clsCMDManager
                                    & Hex(request.iCAID).PadLeft(4, CChar("0")) _
                                    & ":" _
                                    & Hex(request.iSRVID).PadLeft(4, CChar("0")) _
+                                   & ":" _
+                                   & Hex(request.iPROVID).PadLeft(6, CChar("0")) _
                                    & "] -> "
         Dim consoleOutReason As String = " unknown"
 
