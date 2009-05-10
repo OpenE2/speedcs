@@ -267,7 +267,7 @@ Module ModuleMainServer
                 'Next
 
                 'If Not found Then Cache.Answers.Add(ecm)
-                strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & "]"
+                strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & ":" & ecm.PRID.ToString("X6") & "]"
 
             Case CMDType.EMMRequest  'Emm Zeuchs
                 logColor = ConsoleColor.Cyan
