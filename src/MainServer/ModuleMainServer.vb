@@ -155,8 +155,11 @@ Module ModuleMainServer
                 Select Case CType(plainRequest(0), CMDType)
 
                     Case CMDType.ECMRequest  'Request
-                        'If sClient.logecm Then WriteECMToFile(plainRequest, "Client: " & sClient.Username & " - ")
-                        'WriteECMToFile(plainRequest, "Client: ")
+                        For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
+                            If s.LogECM Then WriteECMToFile(plainRequest, sClient.Username & " Request: ")
+                            Exit For
+                        Next
+
                         If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
                         If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
                         sClient.lastrequest = Now
@@ -189,7 +192,12 @@ Module ModuleMainServer
                             SyncLock emmStack
                                 If Not .ContainsKey(emmCRC) Then .Add(emmCRC, plainRequest)
                             End SyncLock
-                            If sClient.logemm Then WriteEMMToFile(plainRequest, "Client: " & sClient.Username & " - ")
+
+                            For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
+                                If s.LogEMM Then WriteEMMToFile(plainRequest, sClient.Username & " Response: ")
+                                Exit For
+                            Next
+
                             logColor = ConsoleColor.Cyan
                             strClientResult = "Emm Client Response. Stack: " & .Count
                         End With
@@ -249,7 +257,11 @@ Module ModuleMainServer
                 strServerResult = " CMD00 shouldn't be here"
 
             Case CMDType.ECMResponse  'Answer
-                'WriteECMToFile(plainRequest, "Server: ")
+                For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
+                    If s.LogECM Then WriteECMToFile(plainRequest, "Server: ")
+                    Exit For
+                Next
+
                 CacheManager.CMD1Answers.Add(plainRequest, message.sourceIP, message.sourcePort)
                 Debug.WriteLine("incoming from " & message.sourceIP & " - Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
 
@@ -277,8 +289,8 @@ Module ModuleMainServer
                 Dim s As clsSettingsCardServers.clsCardServer
 
                 If Not plainRequest(1) = &H70 Then
-                    For Each c In CfgClients.Clients
-                        If c.logemm Then WriteEMMToFile(plainRequest, "Server: ")
+                    For Each s In CfgCardServers.CardServers
+                        If s.LogEMM Then WriteEMMToFile(plainRequest, "Server: ")
                         Exit For
                     Next
 

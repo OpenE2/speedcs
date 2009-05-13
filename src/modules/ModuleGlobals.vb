@@ -145,10 +145,10 @@ Module ModuleGlobals
     End Sub
 
     Public Sub WriteEMMToFile(ByVal b As Byte(), Optional ByVal prefix As String = "")
-        Dim filename As String = Path.Combine(filepath, "EMMlog.txt")
         If Not filepath.EndsWith(InstanceDir) Then
             filepath = Path.Combine(filepath, InstanceDir)
         End If
+        Dim filename As String = Path.Combine(filepath, "EMMlog.txt")
         Dim out As String = String.Empty
         For i As Integer = 0 To b.Length - 1
             out &= b(i).ToString("X2") & " "
@@ -159,10 +159,10 @@ Module ModuleGlobals
     End Sub
 
     Public Sub WriteECMToFile(ByVal b As Byte(), Optional ByVal prefix As String = "")
-        Dim filename As String = Path.Combine(filepath, "ECMlog.txt")
         If Not filepath.EndsWith(InstanceDir) Then
             filepath = Path.Combine(filepath, InstanceDir)
         End If
+        Dim filename As String = Path.Combine(filepath, "ECMlog.txt")
         Dim out As String = String.Empty
         For i As Integer = 0 To b.Length - 1
             out &= b(i).ToString("X2") & " "

@@ -480,6 +480,16 @@ Public Class Server
                                                         s.AutoBlocked = CBool(l(1))
                                                         settingschanged = True
                                                     End If
+                                                Case "logemm"
+                                                    If s.LogEMM.Equals(CBool(l(1))) = False Then
+                                                        s.LogEMM = CBool(l(1))
+                                                        settingschanged = True
+                                                    End If
+                                                Case "logecm"
+                                                    If s.LogECM.Equals(CBool(l(1))) = False Then
+                                                        s.LogECM = CBool(l(1))
+                                                        settingschanged = True
+                                                    End If
                                                 Case "supportedCAIDs"
                                                     Dim strTmp As String
                                                     If s.supportedCAID.Count > 0 Then
@@ -601,6 +611,17 @@ Public Class Server
                             End If
                             sMessage.Append("'></td></tr>")
 
+                            sMessage.Append("<tr><td>Server is SpeedCS<td><td>")
+                            sMessage.Append("<select name='IsSCS'>")
+                            sMessage.Append("<option ")
+                            If s.IsSCS Then sMessage.Append("selected ")
+                            sMessage.Append("value='1'>Yes</option>")
+                            sMessage.Append("<option ")
+                            If Not s.IsSCS Then sMessage.Append("selected ")
+                            sMessage.Append("value='0'>No</option>")
+                            sMessage.Append("</select>")
+                            sMessage.Append("</td></tr>")
+
                             sMessage.Append("<tr><td>Send Broadcasts<td><td>")
                             sMessage.Append("<select name='sendbroadcasts'>")
                             sMessage.Append("<option ")
@@ -623,13 +644,13 @@ Public Class Server
                             sMessage.Append("</select>")
                             sMessage.Append("</td></tr>")
 
-                            sMessage.Append("<tr><td>Server is SpeedCS<td><td>")
-                            sMessage.Append("<select name='IsSCS'>")
+                            sMessage.Append("<tr><td>Log EMMs<td><td>")
+                            sMessage.Append("<select name='logemm'>")
                             sMessage.Append("<option ")
-                            If s.IsSCS Then sMessage.Append("selected ")
+                            If s.LogEMM Then sMessage.Append("selected ")
                             sMessage.Append("value='1'>Yes</option>")
                             sMessage.Append("<option ")
-                            If Not s.IsSCS Then sMessage.Append("selected ")
+                            If Not s.LogEMM Then sMessage.Append("selected ")
                             sMessage.Append("value='0'>No</option>")
                             sMessage.Append("</select>")
                             sMessage.Append("</td></tr>")
@@ -641,6 +662,17 @@ Public Class Server
                             sMessage.Append("value='1'>Yes</option>")
                             sMessage.Append("<option ")
                             If Not s.SendECMs Then sMessage.Append("selected ")
+                            sMessage.Append("value='0'>No</option>")
+                            sMessage.Append("</select>")
+                            sMessage.Append("</td></tr>")
+
+                            sMessage.Append("<tr><td>Log ECMs<td><td>")
+                            sMessage.Append("<select name='logecm'>")
+                            sMessage.Append("<option ")
+                            If s.LogECM Then sMessage.Append("selected ")
+                            sMessage.Append("value='1'>Yes</option>")
+                            sMessage.Append("<option ")
+                            If Not s.LogECM Then sMessage.Append("selected ")
                             sMessage.Append("value='0'>No</option>")
                             sMessage.Append("</select>")
                             sMessage.Append("</td></tr>")
