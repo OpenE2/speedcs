@@ -160,6 +160,9 @@ Module ModuleMainServer
                             Exit For
                         Next
 
+                        If sClient.logecm Then WriteECMToFile(plainRequest, sClient.Username & " Request: ")
+
+
                         If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
                         If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
                         sClient.lastrequest = Now
@@ -426,8 +429,10 @@ Module ModuleMainServer
         Dim udpClient As clsUDPIO = TryCast(sender, clsUDPIO)
         If Not udpClient Is Nothing Then
             If Not udpClient.endWasRequested And udpClient.hadError Then
-                StopUDP()
-                StartUDP()
+                udpClient.CloseUDPConnection()
+                udpClient.OpenUDPConnection()
+                'StopUDP()
+                'StartUDP()
             End If
         Else
 
