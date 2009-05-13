@@ -411,8 +411,6 @@ End Class
         Public AutoBlocked As Boolean = False
         Public LogECM As Boolean = False
         Public LogEMM As Boolean = False
-        Public LogECM As Boolean = False
-        Public LogEMM As Boolean = False
 
         Public supportedCAID As New List(Of UInt16) 'Supported over Settings
         Public supportedSRVID As New List(Of UInt16) 'Supported over Settings
