@@ -429,10 +429,7 @@ Module ModuleMainServer
         Dim udpClient As clsUDPIO = TryCast(sender, clsUDPIO)
         If Not udpClient Is Nothing Then
             If Not udpClient.endWasRequested And udpClient.hadError Then
-                udpClient.CloseUDPConnection()
                 udpClient.OpenUDPConnection()
-                'StopUDP()
-                'StartUDP()
             End If
         Else
 
