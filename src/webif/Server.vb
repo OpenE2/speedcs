@@ -728,6 +728,7 @@ Public Class Server
                     For Each l As String In lines
                         If Mid(LCase(l), 1, 3).Equals("get") Then
                             If GetValueFromUrl(l, "add").Length > 0 Then
+                                CfgClients.Load()
                                 Dim nu As New clsSettingsClients.clsClient
                                 nu.Username = "New_user"
                                 CfgClients.Clients.Add(nu)

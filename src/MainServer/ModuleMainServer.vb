@@ -155,14 +155,8 @@ Module ModuleMainServer
                 Select Case CType(plainRequest(0), CMDType)
 
                     Case CMDType.ECMRequest  'Request
-                        For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
-                            If s.LogECM Then WriteECMToFile(plainRequest, sClient.Username & " Request: ")
-                            Exit For
-                        Next
-
                         If sClient.logecm Then WriteECMToFile(plainRequest, sClient.Username & " Request: ")
-
-
+                        
                         If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
                         If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
                         sClient.lastrequest = Now
@@ -196,10 +190,7 @@ Module ModuleMainServer
                                 If Not .ContainsKey(emmCRC) Then .Add(emmCRC, plainRequest)
                             End SyncLock
 
-                            For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
-                                If s.LogEMM Then WriteEMMToFile(plainRequest, sClient.Username & " Response: ")
-                                Exit For
-                            Next
+                            If sClient.logemm Then WriteEMMToFile(plainRequest, sClient.Username & " Response: ")
 
                             logColor = ConsoleColor.Cyan
                             strClientResult = "Emm Client Response. Stack: " & .Count
@@ -260,10 +251,7 @@ Module ModuleMainServer
                 strServerResult = " CMD00 shouldn't be here"
 
             Case CMDType.ECMResponse  'Answer
-                For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
-                    If s.LogECM Then WriteECMToFile(plainRequest, "Server: ")
-                    Exit For
-                Next
+                If mSender.serverobject.LogECM Then WriteECMToFile(plainRequest, "Server Response: ")
 
                 CacheManager.CMD1Answers.Add(plainRequest, message.sourceIP, message.sourcePort)
                 Debug.WriteLine("incoming from " & message.sourceIP & " - Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
@@ -292,11 +280,8 @@ Module ModuleMainServer
                 Dim s As clsSettingsCardServers.clsCardServer
 
                 If Not plainRequest(1) = &H70 Then
-                    For Each s In CfgCardServers.CardServers
-                        If s.LogEMM Then WriteEMMToFile(plainRequest, "Server: ")
-                        Exit For
-                    Next
-
+                    If mSender.serverobject.LogEMM Then WriteEMMToFile(plainRequest, "Server Request: ")
+                    
                     strServerResult = "EMM Request CMD05"
 
                     Dim cardSerial As UInt32 = BitConverter.ToUInt32(plainRequest, 40)
@@ -428,21 +413,21 @@ Module ModuleMainServer
     Private Sub ServerIncomingError(ByVal sender As Object, ByVal message As String)
         Dim udpClient As clsUDPIO = TryCast(sender, clsUDPIO)
         If Not udpClient Is Nothing Then
-            If Not udpClient.endWasRequested And udpClient.hadError Then
+            If Not udpClient.endWasRequested Then
+                Output("ServerIncomingError: " & message & " ->try restart " & udpClient.serverobject.Hostname, LogDestination.file)
                 udpClient.OpenUDPConnection()
             End If
         Else
-
+            Output("ClientIncomingError: " & message & " -> UDP Client destroyed " & udpClient.serverobject.Hostname, LogDestination.none)
         End If
-        Output("ServerIncomingError: " & message & " ->try restart", LogDestination.file)
+
     End Sub
 
     Private Sub ClientIncomingError(ByVal sender As Object, ByVal message As String)
         Dim udpClient As clsUDPIO = TryCast(sender, clsUDPIO)
         If Not udpClient Is Nothing Then
-            If Not udpClient.endWasRequested And udpClient.hadError Then
+            If Not udpClient.endWasRequested Then
                 Output("ClientIncomingError: " & message & " -> try restart " & udpClient.serverobject.Hostname, LogDestination.none)
-                udpClient.CloseUDPConnection()
                 udpClient.OpenUDPConnection()
             End If
         Else
