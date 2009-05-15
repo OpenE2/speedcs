@@ -214,4 +214,6 @@ Module ModuleGlobals
 
     Public NewCamdServer As New clsTCPIO
 
+    Public CWlog As New clsCWlog
+
 End Module

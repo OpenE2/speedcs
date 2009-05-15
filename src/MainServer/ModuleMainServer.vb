@@ -272,6 +272,9 @@ Module ModuleMainServer
                 'If Not found Then Cache.Answers.Add(ecm)
                 strServerResult = "Answer: '" & mSender.serverobject.Username & "' [" & ecm.CAId.ToString("X4") & ":" & ecm.SRVId.ToString("X4") & ":" & ecm.PRID.ToString("X6") & "]"
 
+                'CWLog for TSDEC 
+                If CfgGlobals.CWLogIsEnabled Then CWlog.WriteCWlog(plainRequest)
+
             Case CMDType.EMMRequest  'Emm Zeuchs
                 logColor = ConsoleColor.Cyan
 

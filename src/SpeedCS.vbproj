@@ -66,6 +66,7 @@
     <Compile Include="MainServer\clsTCPIO.vb" />
     <Compile Include="MainServer\clsUDPIO.vb" />
     <Compile Include="MainServer\ModuleMainServer.vb" />
+    <Compile Include="MiscAdds\clsCWlog.vb" />
     <Compile Include="ModuleMain.vb" />
     <Compile Include="modules\ModuleGlobals.vb" />
     <Compile Include="modules\Output.vb" />

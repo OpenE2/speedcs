@@ -100,6 +100,12 @@ Public Class clsSettingsGlobal
 
 #End Region
 
+#Region "Misc Settings"
+
+    Public CWLogIsEnabled As Boolean = False
+
+#End Region
+
 #Region "cs357x Settings"
 
     Public cs357xUse As Boolean = True
@@ -203,10 +209,13 @@ End Class
         Public payeduntil As Date = Now
         Public lastrequest As Date = Now
         Public AUServer As String = String.Empty
+        Public SleepCount As Integer
+
         <XmlIgnore()> Public AUisActiveSince As Date
         <XmlIgnore()> Public AUSerial As UInt32
         <XmlIgnore()> Public lastRequestedService As clsService
         <XmlIgnore()> Public lastRequestedCAIDSRVID As String
+        <XmlIgnore()> Public lastChannelChange As Date
 
         Private _ucrc As UInteger
         Public ReadOnly Property ucrc() As UInteger

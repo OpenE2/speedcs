@@ -1169,6 +1169,11 @@ Public Class Server
                                         savechanges = True
                                     End If
                                 End If
+                            Case "CWLog"
+                                If CfgGlobals.CWLogIsEnabled <> CBool(Trim(l(1))) Then
+                                    CfgGlobals.CWLogIsEnabled = CBool(Trim(l(1)))
+                                    savechanges = True
+                                End If
                             Case "newcamduse"
                                 If CfgGlobals.NewCamdUse <> CBool(Trim(l(1))) Then
                                     NewCamdServer.StopServer()
@@ -1249,6 +1254,18 @@ Public Class Server
         sMessage.Append("</td></tr>")
 
         sMessage.Append("<tr><th>Listenport</th><td><input size=4 type='text' name='cs357xport' value='" & CfgGlobals.cs357xPort & "'></td></tr>")
+
+        'CWLog
+        sMessage.Append("<tr><th>CW Log</th><td>")
+        sMessage.Append("<select name='CWLog'>")
+        sMessage.Append("<option ")
+        If CfgGlobals.CWLogIsEnabled Then sMessage.Append("selected ")
+        sMessage.Append("value='1'>Yes</option>")
+        sMessage.Append("<option ")
+        If Not CfgGlobals.CWLogIsEnabled Then sMessage.Append("selected ")
+        sMessage.Append("value='0'>No</option>")
+        sMessage.Append("</select>")
+        sMessage.Append("</td></tr>")
 
         sMessage.Append("<tr class='head'><th colspan=2>NewCamd Protocol</td></tr>")
 
