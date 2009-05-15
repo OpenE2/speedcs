@@ -26,9 +26,10 @@ Module ModuleMain
     Public InstanceDir As String = ""
 
     Sub Main()
-        Console.WindowWidth = 100
         Try
             OSTypeIs = CheckOStype()
+
+            If OSTypeIs = eOSType.Windows Then Console.WindowWidth = 100
 
             Dim t As New Thread(AddressOf RealMain)
             t.SetApartmentState(ApartmentState.MTA)
