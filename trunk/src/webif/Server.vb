@@ -1270,7 +1270,7 @@ Public Class Server
         sMessage.Append("<tr class='head'><th colspan=2>NewCamd Protocol</td></tr>")
 
         sMessage.Append("<tr><th>enabled</th><td>")
-        sMessage.Append("<select name='newcamduse'>")
+        sMessage.Append("<select name='newcamduse' disabled=true>") 'disabled
         sMessage.Append("<option ")
         If CfgGlobals.NewCamdUse Then sMessage.Append("selected ")
         sMessage.Append("value='1'>Yes</option>")
@@ -1280,8 +1280,8 @@ Public Class Server
         sMessage.Append("</select>")
         sMessage.Append("</td></tr>")
 
-        sMessage.Append("<tr><th>Listenport</th><td><input size=4 type='text' name='newcamdport' value='" & CfgGlobals.NewCamdPort & "'></td></tr>")
-        sMessage.Append("<tr><th>Key</th><td><input size=28 type='text' name='newcamdkey' value='" & CfgGlobals.NewCamdKey & "'></td></tr>")
+        sMessage.Append("<tr><th>Listenport</th><td><input size=4 type='text' name='newcamdport' value='" & CfgGlobals.NewCamdPort & "' disabled=true></td></tr>") 'disabled
+        sMessage.Append("<tr><th>Key</th><td><input size=28 type='text' name='newcamdkey' value='" & CfgGlobals.NewCamdKey & "' disabled=true></td></tr>") 'disabled
         'TODO: DES Key should be here too
 
         sMessage.Append("<tr class='head'><th colspan=2>Webinterface</td></tr>")
