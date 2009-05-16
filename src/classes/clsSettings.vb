@@ -207,16 +207,16 @@ End Class
         Public msn As String
         Public skype As String
         Public payeduntil As Date = Now
-        Public lastrequest As Date = Now
-        Public logintime As Date = Now
         Public AUServer As String = String.Empty
         Public SleepCount As Integer
 
         <XmlIgnore()> Public AUisActiveSince As Date
         <XmlIgnore()> Public AUSerial As UInt32
         <XmlIgnore()> Public lastRequestedService As clsService
-        <XmlIgnore()> Public lastRequestedCAIDSRVID As String
+        <XmlIgnore()> Public lastRequestedCAIDSRVID As String = ""
         <XmlIgnore()> Public lastChannelChange As Date
+        <XmlIgnore()> Public lastRequest As Date
+        <XmlIgnore()> Public LoginTime As Date
 
         Private _ucrc As UInteger
         Public ReadOnly Property ucrc() As UInteger

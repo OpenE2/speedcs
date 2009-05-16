@@ -324,9 +324,16 @@ Public Class clsCMDManager
             CfgClients.Clients.FindByUCRC(sUCRC).lastRequestedService = _
             Services.GetServiceInfo(Hex(iCAID).PadLeft(4, CChar("0")) & ":" & Hex(iSRVID).PadLeft(4, CChar("0")))
 
-            'Set last requested CAID:SRVID to cliet
+            'Set last requested CAID:SRVID to client
+            Dim strTmp As String = CfgClients.Clients.FindByUCRC(sUCRC).lastRequestedCAIDSRVID
             CfgClients.Clients.FindByUCRC(sUCRC).lastRequestedCAIDSRVID = _
             Hex(iCAID).PadLeft(4, CChar("0")) & ":" & Hex(iSRVID).PadLeft(4, CChar("0"))
+
+            'Set lastChannelChange to Now if LoginTime > lastChannelChange
+            If CfgClients.Clients.FindByUCRC(sUCRC).LoginTime > CfgClients.Clients.FindByUCRC(sUCRC).lastChannelChange Then CfgClients.Clients.FindByUCRC(sUCRC).lastChannelChange = Now
+
+            'Set lastChannelChange to Now if strTmp not equal lastRequestedCAIDSRVID
+            If Not strTmp.Equals(CfgClients.Clients.FindByUCRC(sUCRC).lastRequestedCAIDSRVID) Then CfgClients.Clients.FindByUCRC(sUCRC).lastChannelChange = Now
 
             Using ms As New MemoryStream
                 ms.Write(PlainCMD0Message, 8, 4)
