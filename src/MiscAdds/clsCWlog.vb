@@ -20,7 +20,13 @@ Public Class clsCWlog
             logChannel = New clsLogChannel
             logChannel.iSRVID = GetLittleEndian(BitConverter.ToUInt16(Message, 8))
             logChannel.iCAID = GetLittleEndian(BitConverter.ToUInt16(Message, 10))
-            logChannel.iPROVID = GetLittleEndian(BitConverter.ToUInt32(Message, 12))
+            Using ms As New MemoryStream
+                ms.Write(Message, 12, 4)
+                Dim strTmp() As Byte
+                strTmp = ms.ToArray
+                Array.Reverse(strTmp)
+                logChannel.iPROVID = BitConverter.ToUInt32(strTmp, 0)
+            End Using
             cwLogChannels.Add(key, logChannel)
             logChannel.SetEnv()
         End If
@@ -52,18 +58,34 @@ Public Class clsLogChannel
         Dim d As Date = Date.Now
 
         actualFilePath = Path.Combine(filepath, "CWL-" & d.Year & d.Month & d.Day)
-        If Not Directory.Exists(actualFilePath) Then Directory.CreateDirectory(actualFilePath)
 
-        Dim serviceName As String = Services.GetServiceInfo(iCAID.ToString("X4") & ":" & iSRVID.ToString("X4")).Name
-        serviceName = Regex.Replace(serviceName.Trim, "[^A-Za-z0-9]", "_")
+        If Not Directory.Exists(actualFilePath) Then
+            Directory.CreateDirectory(actualFilePath)
 
-        actualFileName = d.Year & d.Month & d.Day & "-C" & _
-                            iCAID.ToString("X4") & "-Ixxxx-" & _
-                            serviceName & _
-                            ".cwl"
+            Dim serviceName As String = Services.GetServiceInfo(iCAID.ToString("X4") & ":" & iSRVID.ToString("X4")).Name
+            serviceName = Regex.Replace(serviceName.Trim, "[^A-Za-z0-9]", "_")
 
-        actualFileName = Path.Combine(actualFilePath, actualFileName)
-        WriteHeaderToFile()
+            actualFileName = d.Year & d.Month & d.Day & "-C" & _
+                                iCAID.ToString("X4") & "-Ixxxx-" & _
+                                serviceName & _
+                                ".cwl"
+
+            actualFileName = Path.Combine(actualFilePath, actualFileName)
+            WriteHeaderToFile()
+        End If
+
+        If Not File.Exists(actualFileName) Then
+            Dim serviceName As String = Services.GetServiceInfo(iCAID.ToString("X4") & ":" & iSRVID.ToString("X4")).Name
+            serviceName = Regex.Replace(serviceName.Trim, "[^A-Za-z0-9]", "_")
+
+            actualFileName = d.Year & d.Month & d.Day & "-C" & _
+                                iCAID.ToString("X4") & "-Ixxxx-" & _
+                                serviceName & _
+                                ".cwl"
+
+            actualFileName = Path.Combine(actualFilePath, actualFileName)
+            WriteHeaderToFile()
+        End If
     End Sub
 
     Public Sub ResolveCMD1(ByVal Message() As Byte)
@@ -98,8 +120,8 @@ Public Class clsLogChannel
             fw.WriteLine(out)
         End Using
         '# CAID 0x0D05, PID 0x00C9, PROVIDER 0x000004
-        out = "# CAID 0x" & iCAID.ToString("X4") & ", "
-        out &= " PID 0x" & iSRVID.ToString("X4") & ", "
+        out = "# CAID 0x" & iCAID.ToString("X4") & ","
+        out &= " PID 0x" & iSRVID.ToString("X4") & ","
         out &= " PROVIDER 0x" & iPROVID.ToString("X6")
         Using fw As New StreamWriter(actualFileName, True)
             fw.WriteLine(out)
@@ -111,6 +133,7 @@ Public Class clsLogChannel
         For i As Integer = 0 To Message.Length - 1
             out &= Message(i).ToString("X2") & " "
         Next
+        If Not File.Exists(actualFileName) Then SetEnv()
         Using fw As New StreamWriter(actualFileName, True)
             fw.WriteLine(parity & " " & out & "# " & Date.Now.ToLongTimeString)
         End Using
