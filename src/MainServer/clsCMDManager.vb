@@ -88,20 +88,17 @@ Public Class clsCMDManager
             Using ms As New MemoryStream
                 ms.Write(PlainCMD1Message, 8, 2)
                 SRVID = ms.ToArray
-                iSRVID = BitConverter.ToUInt16(SRVID, 0)
-                iSRVID = CUShort(Math.Floor(iSRVID / 256) + 256 * (iSRVID And 255)) 'Convert to Little Endian
+                iSRVID = GetLittleEndian(BitConverter.ToUInt16(SRVID, 0))
             End Using
             Using ms As New MemoryStream
                 ms.Write(PlainCMD1Message, 10, 2)
                 CAID = ms.ToArray
-                iCAID = BitConverter.ToUInt16(CAID, 0)
-                iCAID = CUShort(Math.Floor(iCAID / 256) + 256 * (iCAID And 255)) 'Convert to Little Endian
+                iCAID = GetLittleEndian(BitConverter.ToUInt16(CAID, 0))
             End Using
             Using ms As New MemoryStream
                 ms.Write(PlainCMD1Message, 12, 4)
                 PROVID = ms.ToArray
-                iPROVID = BitConverter.ToUInt32(PROVID, 0)
-                iPROVID = CUInt(Math.Floor(iPROVID / 65536) + 65536 * (iPROVID And 65535)) 'Convert to Little Endian
+                iPROVID = GetLittleEndian(BitConverter.ToUInt32(PROVID, 0))
             End Using
             Using ms As New MemoryStream
                 'ms.Write(PlainCMD1Message, 16, _Length)
@@ -315,14 +312,12 @@ Public Class clsCMDManager
             Using ms As New MemoryStream
                 ms.Write(PlainCMD0Message, 8, 2)
                 SRVID = ms.ToArray
-                iSRVID = BitConverter.ToUInt16(SRVID, 0)
-                iSRVID = CUShort(Math.Floor(iSRVID / 256) + 256 * (iSRVID And 255)) 'Convert to Little Endian
+                iSRVID = GetLittleEndian(BitConverter.ToUInt16(SRVID, 0))
             End Using
             Using ms As New MemoryStream
                 ms.Write(PlainCMD0Message, 10, 2)
                 CAID = ms.ToArray
-                iCAID = BitConverter.ToUInt16(CAID, 0)
-                iCAID = CUShort(Math.Floor(iCAID / 256) + 256 * (iCAID And 255)) 'Convert to Little Endian
+                iCAID = GetLittleEndian(BitConverter.ToUInt16(CAID, 0))
             End Using
 
             'Set last requested Service to client
@@ -335,14 +330,12 @@ Public Class clsCMDManager
 
             Using ms As New MemoryStream
                 ms.Write(PlainCMD0Message, 8, 4)
-                srvidcaid = BitConverter.ToUInt32(ms.ToArray, 0)
-                srvidcaid = CUInt(Math.Floor(srvidcaid / 65536) + 65536 * (srvidcaid And 65535))
+                srvidcaid = GetLittleEndian(BitConverter.ToUInt32(ms.ToArray, 0))
             End Using
             Using ms As New MemoryStream
                 ms.Write(PlainCMD0Message, 12, 4)
                 PROVID = ms.ToArray
-                iPROVID = BitConverter.ToUInt32(PROVID, 0)
-                iPROVID = CUInt(Math.Floor(iPROVID / 65536) + 65536 * (iPROVID And 65535)) 'Convert to Little Endian
+                iPROVID = GetLittleEndian(BitConverter.ToUInt32(PROVID, 0))
             End Using
             'Using ms As New MemoryStream
             '    ms.Write(PlainCMD0Message, 16, _Length)

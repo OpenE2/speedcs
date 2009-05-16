@@ -189,6 +189,14 @@ Module ModuleGlobals
         Return HEX
     End Function
 
+    Public Function GetLittleEndian(ByVal value As UInt16) As UInt16
+        Return CUShort(Math.Floor(value / 256) + 256 * (value And 255)) 'Convert to Little Endian
+    End Function
+
+    Public Function GetLittleEndian(ByVal value As UInt32) As UInt32
+        Return CUInt(Math.Floor(value / 65536) + 65536 * (value And 65535)) 'Convert to Little Endian
+    End Function
+
     Public CfgGlobals As New clsSettingsGlobal
     Public CfgClients As New clsSettingsClients
     Public CfgCardServers As New clsSettingsCardServers
