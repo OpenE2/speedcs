@@ -159,6 +159,9 @@ Module ModuleMainServer
                         
                         If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
                         If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
+
+                        If DateDiff(DateInterval.Second, sClient.lastrequest, Now) > 120 Then sClient.logintime = Now
+
                         sClient.lastrequest = Now
                         'Cache.Requests.Add(ecm)
                         'strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"

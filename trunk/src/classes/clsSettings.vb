@@ -208,6 +208,7 @@ End Class
         Public skype As String
         Public payeduntil As Date = Now
         Public lastrequest As Date = Now
+        Public logintime As Date = Now
         Public AUServer As String = String.Empty
         Public SleepCount As Integer
 
