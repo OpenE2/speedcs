@@ -363,7 +363,7 @@ Public Class clsCache
                     End If
                 Loop
 
-                'HACK Wie bekomme ich eine eindeutige Zahl für einen Server Request hin?
+
                 _ecm.ClientPID = CUShort(Cache.ServerRequests.GetUniqueId)
                 Cache.ServerRequests.Add(_ecm)
 
@@ -557,7 +557,7 @@ Public Class clsCache
                             _ecm.ClientPID = req.ClientPID
                             If Not c Is Nothing Then
                                 _ecm.CMD = CMDType.ECMResponse
-                                'Hack: hier einkommentiern stellt die alte Funktion wieder her
+
                                 'UdpClientManager.SendUDPMessage(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), Net.IPAddress.Parse(CStr(c.SourceIp)), c.SourcePort)
                                 'DebugOutputBytes(_ecm.ReturnAsCryptedArray(CfgClients.Clients.FindByUCRC(_ecm.usercrc).MD5_Password), "legacy: ")
                                 'Dim adressData As String = c.SourceIp & ":" & c.SourcePort
