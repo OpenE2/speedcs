@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Text.RegularExpressions
 
 Public Class clsCWlog
     Public cwLogChannels As New SortedList(Of UInt32, clsLogChannel)
@@ -49,12 +50,16 @@ Public Class clsLogChannel
 
     Public Sub SetEnv()
         Dim d As Date = Date.Now
+
         actualFilePath = Path.Combine(filepath, "CWL-" & d.Year & d.Month & d.Day)
         If Not Directory.Exists(actualFilePath) Then Directory.CreateDirectory(actualFilePath)
 
+        Dim serviceName As String = Services.GetServiceInfo(iCAID.ToString("X4") & ":" & iSRVID.ToString("X4")).Name
+        serviceName = Regex.Replace(serviceName.Trim, "[^A-Za-z0-9]", "_")
+
         actualFileName = d.Year & d.Month & d.Day & "-C" & _
                             iCAID.ToString("X4") & "-Ixxxx-" & _
-                            Services.GetServiceInfo(iCAID.ToString("X4") & ":" & iSRVID.ToString("X4")).Name & _
+                            serviceName & _
                             ".cwl"
 
         actualFileName = Path.Combine(actualFilePath, actualFileName)
