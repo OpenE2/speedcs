@@ -415,7 +415,6 @@ End Class
         Public SendBroadcasts As Boolean = False
         Public SendEMMs As Boolean = False
         Public SendECMs As Boolean = True
-        'ToDo: Build IsSCS in Webif
         Public IsSCS As Boolean = False
         Public acceptedCAID As List(Of UInt16)
         Public AutoBlocked As Boolean = False
