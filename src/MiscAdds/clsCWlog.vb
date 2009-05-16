@@ -100,7 +100,7 @@ Public Class clsLogChannel
         '# CAID 0x0D05, PID 0x00C9, PROVIDER 0x000004
         out = "# CAID 0x" & iCAID.ToString("X4") & ", "
         out &= " PID 0x" & iSRVID.ToString("X4") & ", "
-        out &= " PROVIDER 0x" & iPROVID.ToString("X8")
+        out &= " PROVIDER 0x" & iPROVID.ToString("X6")
         Using fw As New StreamWriter(actualFileName, True)
             fw.WriteLine(out)
         End Using
