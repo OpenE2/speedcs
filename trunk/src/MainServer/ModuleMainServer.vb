@@ -287,7 +287,7 @@ Module ModuleMainServer
 
                 If Not plainRequest(1) = &H70 Then
                     If mSender.serverobject.LogEMM Then WriteEMMToFile(plainRequest, "Server Request: ")
-                    
+
                     strServerResult = "EMM Request CMD05"
 
                     Dim cardSerial As UInt32 = BitConverter.ToUInt32(plainRequest, 40)
