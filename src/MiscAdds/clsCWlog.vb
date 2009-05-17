@@ -77,10 +77,12 @@ Public Class clsLogChannel
             Dim serviceName As String = Services.GetServiceInfo(_iCAID.ToString("X4") & ":" & _iSRVID.ToString("X4")).Name
             serviceName = Regex.Replace(serviceName.Trim, "[^A-Za-z0-9]", "_")
 
-            actualFileName = d.Year & d.Month & d.Day & "-C" & _
-                                _iCAID.ToString("X4") & "-Ixxxx-" & _
-                                serviceName & _
-                                ".cwl"
+            actualFileName = d.Year.ToString.Substring(2, 2) & d.Month.ToString.PadLeft(2, CChar("0")) & d.Day.ToString.PadLeft(2, CChar("0")) _
+                                & "-C" & _iCAID.ToString("X4") _
+                                & "-I" & _iSRVID.ToString("X4") _
+                                & "-P" & _iPROVID.ToString("X6") _
+                                & "-" & serviceName _
+                                & ".cwl"
 
             actualFileName = Path.Combine(actualFilePath, actualFileName)
             WriteHeaderToFile()
@@ -90,10 +92,12 @@ Public Class clsLogChannel
             Dim serviceName As String = Services.GetServiceInfo(_iCAID.ToString("X4") & ":" & _iSRVID.ToString("X4")).Name
             serviceName = Regex.Replace(serviceName.Trim, "[^A-Za-z0-9]", "_")
 
-            actualFileName = d.Year & d.Month & d.Day & "-C" & _
-                                _iCAID.ToString("X4") & "-Ixxxx-" & _
-                                serviceName & _
-                                ".cwl"
+            actualFileName = d.Year.ToString.Substring(2, 2) & d.Month.ToString.PadLeft(2, CChar("0")) & d.Day.ToString.PadLeft(2, CChar("0")) _
+                         & "-C" & _iCAID.ToString("X4") _
+                         & "-I" & _iSRVID.ToString("X4") _
+                         & "-P" & _iPROVID.ToString("X6") _
+                         & "-" & serviceName _
+                         & ".cwl"
 
             actualFileName = Path.Combine(actualFilePath, actualFileName)
             WriteHeaderToFile()
