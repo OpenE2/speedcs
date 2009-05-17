@@ -1,6 +1,4 @@
-﻿Imports System.IO
-Imports SpeedCS.types
-' 
+﻿' 
 '	Copyright (C) 2009 SpeedCS Team
 '	http://streamboard.gmc.to
 '
@@ -20,7 +18,8 @@ Imports SpeedCS.types
 '  http://www.gnu.org/copyleft/gpl.html
 '
 '
-
+Imports System.IO
+Imports SpeedCS.types
 Public Class clsCache
 
     Public Class clsCAMDMsg
