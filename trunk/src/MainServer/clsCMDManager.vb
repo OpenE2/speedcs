@@ -120,7 +120,8 @@ Public Class clsCMDManager
             Using ms As New MemoryStream
                 ms.Write(PlainCMD1Message, 12, 4)
                 PROVID = ms.ToArray
-                iPROVID = GetLittleEndian(BitConverter.ToUInt32(PROVID, 0))
+                Array.Reverse(PROVID)
+                iPROVID = BitConverter.ToUInt32(PROVID, 0)
             End Using
             Using ms As New MemoryStream
                 'ms.Write(PlainCMD1Message, 16, _Length)
