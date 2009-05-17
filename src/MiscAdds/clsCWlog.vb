@@ -43,8 +43,10 @@ Public Class clsLogChannel
     Private filepath As String
     Private lastOddChecksum As UInt32
     Private lastOddTimestamp As Date
+    Private isFirstOdd As Boolean = True
     Private lastEvenChecksum As UInt32
     Private lastEvenTimestamp As Date
+    Private isFirstEven As Boolean = True
 
     Private actualFilePath As String
     Private actualFileName As String
@@ -104,8 +106,9 @@ Public Class clsLogChannel
             ms.Write(Message, 20, 8)
             Dim actOddChecksum As UInt32 = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
             If Not actOddChecksum = lastOddChecksum Then
-                WriteCWtoFile(0, ms.ToArray)
+                If Not isFirstOdd Then WriteCWtoFile(0, ms.ToArray)
                 lastOddChecksum = actOddChecksum
+                isFirstOdd = False
             End If
         End Using
 
@@ -113,8 +116,9 @@ Public Class clsLogChannel
             ms.Write(Message, 28, 8)
             Dim actEvenChecksum As UInt32 = BitConverter.ToUInt32(clsCRC32.CRC32OfByte(ms.ToArray), 0)
             If Not actEvenChecksum = lastEvenChecksum Then
-                WriteCWtoFile(1, ms.ToArray)
+                If Not isFirstEven Then WriteCWtoFile(1, ms.ToArray)
                 lastEvenChecksum = actEvenChecksum
+                isFirstEven = False
             End If
         End Using
 
