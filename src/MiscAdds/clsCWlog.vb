@@ -17,44 +17,54 @@ Public Class clsCWlog
         If cwLogChannels.ContainsKey(key) Then
             logChannel = TryCast(cwLogChannels(key), clsLogChannel)
         Else
-            logChannel = New clsLogChannel
-            logChannel.iSRVID = GetLittleEndian(BitConverter.ToUInt16(Message, 8))
-            logChannel.iCAID = GetLittleEndian(BitConverter.ToUInt16(Message, 10))
+
+            Dim iSRVID As UInt16 = GetLittleEndian(BitConverter.ToUInt16(Message, 8))
+            Dim iCAID As UInt16 = GetLittleEndian(BitConverter.ToUInt16(Message, 10))
+            Dim iPROVID As UInt32
+
             Using ms As New MemoryStream
                 ms.Write(Message, 12, 4)
-                Dim strTmp() As Byte
-                strTmp = ms.ToArray
-                Array.Reverse(strTmp)
-                logChannel.iPROVID = BitConverter.ToUInt32(strTmp, 0)
+                Dim byteTmp() As Byte = ms.ToArray
+                Array.Reverse(byteTmp)
+                iPROVID = BitConverter.ToUInt32(byteTmp, 0)
             End Using
+
+            logChannel = New clsLogChannel(iSRVID, iCAID, iPROVID) 'Moved variables to Constructor
             cwLogChannels.Add(key, logChannel)
-            logChannel.SetEnv()
+
         End If
 
         logChannel.ResolveCMD1(Message)
+
     End Sub
-
-
 End Class
 
 Public Class clsLogChannel
-    Private filepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
+    Private filepath As String
     Private lastOddChecksum As UInt32
     Private lastOddTimestamp As Date
     Private lastEvenChecksum As UInt32
     Private lastEvenTimestamp As Date
+
     Private actualFilePath As String
     Private actualFileName As String
 
-    Public iSRVID As UInt16
-    Public iCAID As UInt16
-    Public iPROVID As UInt32
+    Private _iSRVID As UInt16
+    Private _iCAID As UInt16
+    Private _iPROVID As UInt32
 
-    Public Sub New()
+    Public Sub New(ByVal iSRVID As UInt16, ByVal iCAID As UInt16, ByVal iPROVID As UInt32)
 
+        filepath = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), _
+                                Application.ProductName)
+
+        _iSRVID = iSRVID
+        _iCAID = iCAID
+        _iPROVID = iPROVID
+        SetEnv()
     End Sub
 
-    Public Sub SetEnv()
+    Private Sub SetEnv()
         Dim d As Date = Date.Now
 
         actualFilePath = Path.Combine(filepath, "CWL-" & d.Year & d.Month & d.Day)
@@ -62,11 +72,11 @@ Public Class clsLogChannel
         If Not Directory.Exists(actualFilePath) Then
             Directory.CreateDirectory(actualFilePath)
 
-            Dim serviceName As String = Services.GetServiceInfo(iCAID.ToString("X4") & ":" & iSRVID.ToString("X4")).Name
+            Dim serviceName As String = Services.GetServiceInfo(_iCAID.ToString("X4") & ":" & _iSRVID.ToString("X4")).Name
             serviceName = Regex.Replace(serviceName.Trim, "[^A-Za-z0-9]", "_")
 
             actualFileName = d.Year & d.Month & d.Day & "-C" & _
-                                iCAID.ToString("X4") & "-Ixxxx-" & _
+                                _iCAID.ToString("X4") & "-Ixxxx-" & _
                                 serviceName & _
                                 ".cwl"
 
@@ -75,11 +85,11 @@ Public Class clsLogChannel
         End If
 
         If Not File.Exists(actualFileName) Then
-            Dim serviceName As String = Services.GetServiceInfo(iCAID.ToString("X4") & ":" & iSRVID.ToString("X4")).Name
+            Dim serviceName As String = Services.GetServiceInfo(_iCAID.ToString("X4") & ":" & _iSRVID.ToString("X4")).Name
             serviceName = Regex.Replace(serviceName.Trim, "[^A-Za-z0-9]", "_")
 
             actualFileName = d.Year & d.Month & d.Day & "-C" & _
-                                iCAID.ToString("X4") & "-Ixxxx-" & _
+                                _iCAID.ToString("X4") & "-Ixxxx-" & _
                                 serviceName & _
                                 ".cwl"
 
@@ -111,31 +121,39 @@ Public Class clsLogChannel
     End Sub
 
     Private Sub WriteHeaderToFile()
-        Dim out As String = String.Empty
+        Dim strOut As String = String.Empty
         '# CWlog V1.0 - logging of ORF1 started at: 01/06/09 21:32:55
-        out &= "# CWlog V1.0 - logging of "
-        out &= Services.GetServiceInfo(iCAID.ToString("X4") & ":" & iSRVID.ToString("X4")).Name
-        out &= " started at: " & Date.Now.ToString & " logged by speedCS"
+        strOut &= "# CWlog V1.0 - logging of "
+        strOut &= Services.GetServiceInfo(_iCAID.ToString("X4") & ":" & _iSRVID.ToString("X4")).Name
+        strOut &= " started at: " & Date.Now.ToString & " logged by speedCS"
+
         Using fw As New StreamWriter(actualFileName, True)
-            fw.WriteLine(out)
+            fw.WriteLine(strOut)
         End Using
+
         '# CAID 0x0D05, PID 0x00C9, PROVIDER 0x000004
-        out = "# CAID 0x" & iCAID.ToString("X4") & ","
-        out &= " PID 0x" & iSRVID.ToString("X4") & ","
-        out &= " PROVIDER 0x" & iPROVID.ToString("X6")
+        strOut = "# CAID 0x" & _iCAID.ToString("X4") & ","
+        strOut &= " PID 0x" & _iSRVID.ToString("X4") & ","
+        strOut &= " PROVIDER 0x" & _iPROVID.ToString("X6")
+
         Using fw As New StreamWriter(actualFileName, True)
-            fw.WriteLine(out)
+            fw.WriteLine(strOut)
         End Using
+
     End Sub
 
     Private Sub WriteCWtoFile(ByVal parity As Byte, ByVal Message() As Byte)
-        Dim out As String = String.Empty
+        Dim strOut As String = String.Empty
+
         For i As Integer = 0 To Message.Length - 1
-            out &= Message(i).ToString("X2") & " "
+            strOut &= Message(i).ToString("X2") & " "
         Next
+
         If Not File.Exists(actualFileName) Then SetEnv()
+
         Using fw As New StreamWriter(actualFileName, True)
-            fw.WriteLine(parity & " " & out & "# " & Date.Now.ToLongTimeString)
+            fw.WriteLine(parity & " " & strOut & "# " & Date.Now.ToLongTimeString)
         End Using
+
     End Sub
 End Class
