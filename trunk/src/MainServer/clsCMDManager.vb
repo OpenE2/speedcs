@@ -50,6 +50,8 @@ Public Class clsCMDManager
 
         Public ReadOnly Property Dead() As Boolean
             Get
+                'TODO 6 Sekunden wäre bei Kabelkunden die alle 10 Sekunden ECMs brauchen zu gering
+                'Es müsste die Zeit zwischen den ECMs gemessen werden und diese Dynamische dann herangezogen werden.
                 If DateDiff(DateInterval.Second, _CreateDate, Date.Now) >= 6 Then
                     Return True
                 Else
