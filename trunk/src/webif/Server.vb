@@ -741,11 +741,19 @@ Public Class Server
                     sMessage.Append("<td class='buttonbar'><a href='importusers.html'>Import mpcs.conf</a></td></tr></table>")
                     sMessage.Append("<table border=1>")
                     sMessage.Append("<tr>")
-                    sMessage.Append("<th>Active</th><th>CRC</th><th>Username</th>")
+                    sMessage.Append("<th>Active</th><th>CRC</th><th>Username</th><th>AU Server</th><th>Logging</th>")
                     sMessage.Append("</tr>")
                     For Each c As clsSettingsClients.clsClient In CfgClients.Clients
                         sMessage.Append("<tr>")
-                        sMessage.Append("<td>" & c.active & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & HEX2DEC(c.Username) & "</td><td><a href='user.html?username=" & c.Username & "'>Edit</a></td>")
+                        sMessage.Append("<td>" & c.active & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & HEX2DEC(c.Username) & "</td><td>" & c.AUServer & "</td>")
+
+                        If c.logecm Or c.logemm Then
+                            sMessage.Append("<th>Enabed</th>")
+                        ElseIf Not c.logecm Or c.logemm Then
+                            sMessage.Append("<td>Disabled</td>")
+                        End If
+
+                        sMessage.Append("<td><a href='user.html?username=" & c.Username & "'>Edit</a></td>")
                         sMessage.Append("</tr>")
                     Next
                     sMessage.Append("</table>")
