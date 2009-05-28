@@ -24,6 +24,7 @@ Imports System.Threading
 Module ModuleMain
     Public stopAll As Boolean = False
     Public InstanceDir As String = ""
+    Public SpeedCSStartTime As Date = Now
 
     Sub Main()
         Try
