@@ -463,6 +463,8 @@ Public Class clsCMDManager
                         Dim adressData As String = c.SourceIp & ":" & c.SourcePort
                         adressData = adressData.PadRight(22)
 
+                        c.lastServerReplyTime = Environment.TickCount - request.IncomingTimeStamp
+
                         Output("C " _
                                & adressData _
                                & c.Username _
@@ -624,6 +626,8 @@ Public Class clsCMDManager
                             canceled = True
                             consoleOutReason = " Server cannot answer"
                         End If
+                    Else
+                        .deniedSRVIDCAID.Clear()
                     End If
 
                     If Not canceled Then

@@ -1496,13 +1496,13 @@ Public Class Server
         sMessage.Append(ButtonBar())
         sMessage.Append("<table border=1>")
         sMessage.Append("<tr class='head'>")
-        sMessage.Append("<th>Username</th><th>UserCRC</th><th>Login Time</th><th>Last Request</th><th>Last Zap</th><th>Current Channel</th><th>CAID:SRVID</th><th>IP</th><th>Port</th><th>AU</th>")
+        sMessage.Append("<th>Username</th><th>Login Time</th><th>Last Request</th><th>Last Zap</th><th>Current Channel</th><th>CAID:SRVID</th><th>Response (ms)</th><th>IP</th><th>Port</th><th>AU</th>")
         sMessage.Append("</tr>")
 
         For Each c As clsSettingsClients.clsClient In CfgClients.Clients
             If DateDiff(DateInterval.Second, c.lastRequest, Now) <= 120 Then
                 sMessage.Append("<tr>")
-                sMessage.Append("<td>" & HEX2DEC(c.Username) & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & c.LoginTime & "</td><td>" & c.lastRequest & "</td><td>" & c.lastChannelChange & "</td><td>" & c.lastRequestedService.Provider & " - " & c.lastRequestedService.Name & "</td><td>" & c.lastRequestedCAIDSRVID & "</td><td>" & c.SourceIp & "</td><td>" & c.SourcePort & "</td><td>" & c.AUServer & "</td>")
+                sMessage.Append("<td>" & HEX2DEC(c.Username) & "</td><td>" & c.LoginTime & "</td><td>" & c.lastRequest & "</td><td>" & c.lastChannelChange & "</td><td>" & c.lastRequestedService.Provider & " - " & c.lastRequestedService.Name & "</td><td>" & c.lastRequestedCAIDSRVID & "</td><td>" & c.lastServerReplyTime & "</td><td>" & c.SourceIp & "</td><td>" & c.SourcePort & "</td><td>" & c.AUServer & "</td>")
                 sMessage.Append("</tr>")
             End If
         Next

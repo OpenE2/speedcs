@@ -217,6 +217,7 @@ End Class
         <XmlIgnore()> Public lastChannelChange As Date
         <XmlIgnore()> Public lastRequest As Date
         <XmlIgnore()> Public LoginTime As Date
+        <XmlIgnore()> Public lastServerReplyTime As Long
 
         Private _ucrc As UInteger
         Public ReadOnly Property ucrc() As UInteger

@@ -421,6 +421,7 @@ Module ModuleMainServer
         If Not udpClient Is Nothing Then
             If Not udpClient.endWasRequested Then
                 Output("ServerIncomingError: " & message & " ->try restart " & udpClient.serverobject.Hostname, LogDestination.file)
+                udpClient.serverobject.deniedSRVIDCAID.Clear()
                 udpClient.OpenUDPConnection()
             End If
         Else
@@ -434,6 +435,7 @@ Module ModuleMainServer
         If Not udpClient Is Nothing Then
             If Not udpClient.endWasRequested Then
                 Output("ClientIncomingError: " & message & " -> try restart " & udpClient.serverobject.Hostname, LogDestination.none)
+                udpClient.serverobject.deniedSRVIDCAID.Clear()
                 udpClient.OpenUDPConnection()
             End If
         Else
