@@ -495,7 +495,6 @@ Public Class Server
                                                     If s.supportedCAID.Count > 0 Then
                                                         For Each iCAID In s.supportedCAID
                                                             strTmp &= Hex(iCAID).PadLeft(4, CChar("0")) & ","
-                                                            Output("DEBUG: " & strTmp)
                                                         Next
                                                         strTmp = strTmp.Substring(0, strTmp.Length - 1)
                                                     End If
@@ -522,7 +521,6 @@ Public Class Server
                                                     If s.supportedSRVID.Count > 0 Then
                                                         For Each iSRVID In s.supportedSRVID
                                                             strTmp &= Hex(iSRVID).PadLeft(4, CChar("0")) & ","
-                                                            Output("DEBUG: " & strTmp)
                                                         Next
                                                         strTmp = strTmp.Substring(0, strTmp.Length - 1)
                                                     End If
@@ -694,22 +692,22 @@ Public Class Server
                             sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
                             sMessage.Append("<tr><td colspan=3><input type='submit' value='Save'></td></tr>")
 
-                            'If s.AutoBlocked Then
-                            sMessage.Append("<tr><td colspan=3><table border=1><tr><td>autoblocked</td></tr>")
-                            For Each srvidcaid As UInt32 In s.deniedSRVIDCAID
-                                sMessage.Append("<tr><td>")
-                                Dim output() As Byte = BitConverter.GetBytes(srvidcaid)
-                                Dim sid As String = Hex(output(0)).PadLeft(2, CChar("0")) & _
-                                                    Hex(output(1)).PadLeft(2, CChar("0")) & _
-                                                    ":" & _
-                                                    Hex(output(2)).PadLeft(2, CChar("0")) & _
-                                                    Hex(output(3)).PadLeft(2, CChar("0"))
+                            If s.AutoBlocked Then
+                                sMessage.Append("<tr><td colspan=3><table border=1><tr><td>autoblocked</td></tr>")
+                                For Each srvidcaid As UInt32 In s.deniedSRVIDCAID
+                                    sMessage.Append("<tr><td>")
+                                    Dim output() As Byte = BitConverter.GetBytes(srvidcaid)
+                                    Dim sid As String = Hex(output(0)).PadLeft(2, CChar("0")) & _
+                                                        Hex(output(1)).PadLeft(2, CChar("0")) & _
+                                                        ":" & _
+                                                        Hex(output(2)).PadLeft(2, CChar("0")) & _
+                                                        Hex(output(3)).PadLeft(2, CChar("0"))
 
-                                sMessage.Append(sid & "</td><td>")
-                                sMessage.Append(Services.GetServiceInfo(sid).Provider & " - " & Services.GetServiceInfo(sid).Name)
-                                sMessage.Append("</td></tr>")
-                            Next
-                            'End If
+                                    sMessage.Append(sid & "</td><td>")
+                                    sMessage.Append(Services.GetServiceInfo(sid).Provider & " - " & Services.GetServiceInfo(sid).Name)
+                                    sMessage.Append("</td></tr>")
+                                Next
+                            End If
                             sMessage.Append("</table></td></tr>")
                             sMessage.Append("</form>")
                             Exit For
@@ -1129,7 +1127,7 @@ Public Class Server
         sMessage.Append("<tr><th>.NET Version</th><td>" & Environment.Version.ToString & "</td></tr>")
         sMessage.Append("<tr><th>Program Version</th><td>" & Application.ProductName & " " & Application.ProductVersion & "</td></tr>")
         sMessage.Append("<tr><th>RAM usage</th><td>" & Environment.WorkingSet / 1024 & " kB</td></tr>")
-        sMessage.Append("<tr><th>Listen on Port</th><td>" & CfgGlobals.cs357xPort & "</td></tr>")
+        sMessage.Append("<tr><th>cs357x Client Port</th><td>" & CfgGlobals.cs357xPort & "</td></tr>")
         sMessage.Append("<tr><th>Working Directory</th><td>" & CurrentDirectory & "</td></tr>")
         Dim filepath As String = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Application.ProductName)
         If Not filepath.EndsWith(InstanceDir) Then
