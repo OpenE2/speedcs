@@ -168,8 +168,8 @@ Module ModuleMainServer
                         If Not emmSender.Enabled Then emmSender.Start()
 
                         CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
-                        Debug.WriteLine("Requests in cachemanager: " & CacheManager.CMD0Requests.Count)
-                        Debug.WriteLine(sClient.lastRequestedService.Name)
+                        Debug.WriteLine("Requests in Cachemanager: " & CacheManager.CMD0Requests.Count)
+                        Debug.WriteLine("Requested Service Name: " & sClient.lastRequestedService.Name)
 
                     Case CMDType.sCSRequest 'Special sCS Request
                         CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
@@ -257,7 +257,7 @@ Module ModuleMainServer
                 If mSender.serverobject.LogECM Then WriteECMToFile(plainRequest, "Server Response: ")
 
                 CacheManager.CMD1Answers.Add(plainRequest, message.sourceIP, message.sourcePort)
-                Debug.WriteLine("incoming from " & message.sourceIP & " - Answers in cachemanager: " & CacheManager.CMD1Answers.Count)
+                Debug.WriteLine("Incomming from " & message.sourceIP & " - Answers in Cachemanager: " & CacheManager.CMD1Answers.Count)
 
                 'Dim found As Boolean = False
                 'For Each sr As clsCache.clsCAMDMsg In Cache.ServerRequests
@@ -417,15 +417,15 @@ Module ModuleMainServer
 #Region "ErrorHandler"
 
     Private Sub ServerIncomingError(ByVal sender As Object, ByVal message As String)
-        Dim udpClient As clsUDPIO = TryCast(sender, clsUDPIO)
-        If Not udpClient Is Nothing Then
-            If Not udpClient.endWasRequested Then
-                Output("ServerIncomingError: " & message & " ->try restart " & udpClient.serverobject.Hostname, LogDestination.file)
-                udpClient.serverobject.deniedSRVIDCAID.Clear()
-                udpClient.OpenUDPConnection()
+        Dim udpServer As clsUDPIO = TryCast(sender, clsUDPIO)
+        If Not udpServer Is Nothing Then
+            If Not udpServer.endWasRequested Then
+                Output("ServerIncomingError: " & message & " ->try restart " & udpServer.serverobject.Hostname, LogDestination.file)
+                udpServer.serverobject.deniedSRVIDCAID.Clear()
+                udpServer.OpenUDPConnection()
             End If
         Else
-            Output("ClientIncomingError: " & message & " -> UDP Client destroyed " & udpClient.serverobject.Hostname, LogDestination.none)
+            Output("ClientIncomingError: " & message & " -> UDP Client destroyed " & udpServer.serverobject.Hostname, LogDestination.none)
         End If
 
     End Sub

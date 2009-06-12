@@ -211,12 +211,12 @@ Public Class clsCMDManager
                         Me(a.Key).ReNew(PlainCMD1Message)
                         'Threading.Thread.Sleep(50)
                         RaiseEvent GotCommand(Me(a.Key), Me(a.Key).CMD)
-                        Debug.WriteLine("Renew CMD1" & a.CMD)
+                        Debug.WriteLine("Renew CMD1 " & a.CMD)
                     End If
                 Else
                     'a.GetFromCMD1Message(PlainCMD1Message)
                     Me.Add(a.Key, a)
-                    Debug.WriteLine("Add CMD1" & a.CMD)
+                    Debug.WriteLine("Add CMD1 " & a.CMD)
                     'Threading.Thread.Sleep(50)
                     RaiseEvent GotCommand(a, a.CMD)
                 End If
@@ -642,7 +642,7 @@ Public Class clsCMDManager
                                 udpserv.SendUDPMessage(ms.ToArray, Net.IPAddress.Parse(udpserv.serverobject.IP), udpserv.serverobject.Port)
                             End Using
                             canceled = False
-                            Debug.WriteLine("sent -> " & .Nickname)
+                            Debug.WriteLine("Request sent to Server: " & .Nickname)
                             Exit For
                         Else
                             consoleOutReason &= " (" & .IP & ")"
