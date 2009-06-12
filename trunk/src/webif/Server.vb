@@ -690,7 +690,7 @@ Public Class Server
                             sMessage.Append("</td></tr>")
 
                             sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
-                            sMessage.Append("<tr><td colspan=3><input type='submit' value='Save'></td></tr>")
+                            sMessage.Append("<tr><th colspan=3><input type='submit' value='Save'><input type='reset' value='Cancel' onclick=window.location='servers.html'></th></tr>")
 
                             If s.AutoBlocked Then
                                 sMessage.Append("<tr><td colspan=3><table border=1><tr><td>autoblocked</td></tr>")
@@ -739,11 +739,11 @@ Public Class Server
                     sMessage.Append("<td class='buttonbar'><a href='importusers.html'>Import mpcs.conf</a></td></tr></table>")
                     sMessage.Append("<table border=1>")
                     sMessage.Append("<tr>")
-                    sMessage.Append("<th>Active</th><th>CRC</th><th>Username</th><th>AU Server</th><th>Logging</th>")
+                    sMessage.Append("<th>Active</th><th>CRC</th><th>Username</th><th>Last Request</th><th>AU Server</th><th>Logging</th>")
                     sMessage.Append("</tr>")
                     For Each c As clsSettingsClients.clsClient In CfgClients.Clients
                         sMessage.Append("<tr>")
-                        sMessage.Append("<td>" & c.active & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & HEX2DEC(c.Username) & "</td><td>" & c.AUServer & "</td>")
+                        sMessage.Append("<td>" & c.active & "</td><td>" & c.ucrc.ToString("X6") & "</td><td>" & HEX2DEC(c.Username) & "</td><td>" & c.lastRequest & "</td><td>" & c.AUServer & "</td>")
 
                         If c.logecm Or c.logemm Then
                             sMessage.Append("<th>Enabed</th>")
@@ -891,7 +891,7 @@ Public Class Server
                             sMessage.Append("<tr><td>Username<td><td><input type='text' name='username' value='" & HEX2DEC(c.Username) & "'></td></tr>")
                             sMessage.Append("<tr><td>Password<td><td><input type='text' name='password' value='" & HEX2DEC(c.Password) & "'></td></tr>")
                             sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
-                            sMessage.Append("<tr><td colspan=3><input type='submit' value='Save'></td></tr>")
+                            sMessage.Append("<tr><th colspan=3><input type='submit' value='Save'><input type='reset' value='Cancel' onclick=window.location='users.html'></th></tr>")
                             sMessage.Append("</form>")
                             Exit For
                         End If
@@ -1311,7 +1311,7 @@ Public Class Server
         sMessage.Append("<tr><th>UDP-Port</th><td><input size=4 type='text' name='syslogport' value='" & CfgGlobals.SysLogPort & "'></td></tr>")
 
         sMessage.Append("<input type='hidden' name='check' value='1'>")
-        sMessage.Append("<tr><th colspan=2><input type='submit' value='Speichern'></th></tr>")
+        sMessage.Append("<tr><th colspan=2><input type='submit' value='Save'><input type='reset' value='Cancel'></th></tr>")
         sMessage.Append("</table>")
         sMessage.Append("</form>")
     End Sub
@@ -1475,7 +1475,7 @@ Public Class Server
                 sMessage.Append("<tr><td>StopBits<td><td><input type='text' name='stopbits' value='" & r.StopBits & "'></td></tr>")
                 sMessage.Append("<tr><td>Timeout<td><td><input type='text' name='timeout' value='" & r.TimeOut & "'></td></tr>")
                 sMessage.Append("<tr><td>Eintrag l&ouml;schen<td><td><input type='checkbox' name='remove' value='true'></td></tr>")
-                sMessage.Append("<tr><td colspan=2><input type='submit' value='Save'></td></tr>")
+                sMessage.Append("<tr><th colspan=3><input type='submit' value='Save'><input type='reset' value='Cancel' onclick=window.location='readers.html'></th></tr>")
                 sMessage.Append("</form>")
                 Exit For
             End If

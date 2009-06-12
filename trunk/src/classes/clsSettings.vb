@@ -209,13 +209,13 @@ End Class
         Public payeduntil As Date = Now
         Public AUServer As String = String.Empty
         Public SleepCount As Integer
+        Public lastRequest As Date
 
         <XmlIgnore()> Public AUisActiveSince As Date
         <XmlIgnore()> Public AUSerial As UInt32
         <XmlIgnore()> Public lastRequestedService As clsService
         <XmlIgnore()> Public lastRequestedCAIDSRVID As String = ""
         <XmlIgnore()> Public lastChannelChange As Date
-        <XmlIgnore()> Public lastRequest As Date
         <XmlIgnore()> Public LoginTime As Date
         <XmlIgnore()> Public lastServerReplyTime As Long
 
@@ -594,7 +594,7 @@ End Class
         Public Active As Boolean = False
         Public UniqueName As String = String.Empty
         Public PortName As String = String.Empty
-        Public Baudrate As UInt16 = 4800
+        Public Baudrate As UInt16 = 9600
         Public Parity As Ports.Parity = Ports.Parity.None
         Public DataBits As UInt16 = 8
         Public StopBits As UInt16 = 1

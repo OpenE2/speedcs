@@ -183,6 +183,7 @@ Public Class clsUDPIO
             RaiseEvent UdpError(Me, "Receive Thread: Socket Closed")
             hadError = True
         Catch ex As Exception
+            RaiseEvent UdpError(Me, "Receive Thread Exception: " & ex.Message)
             _boolThreadStopped = True
             _IsRunning = False
             hadError = True
