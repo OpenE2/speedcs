@@ -564,7 +564,7 @@ Public Class clsCache
 
                                 'Output("C " & adressData & c.Username & " " & _ecm.ServiceName & " found in " & Environment.TickCount - req.IncomingTimeStamp & "ms", LogDestination.none, LogSeverity.info, ConsoleColor.Green)
                             End If
-                            'Debug.WriteLine("Remove sendet request")
+                            'Debug.WriteLine("Remove sent request")
                             Try
                                 SyncLock Cache.Requests
                                     Cache.Requests.RemoveAt(idx)
