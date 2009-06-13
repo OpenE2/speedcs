@@ -491,7 +491,7 @@ Public Class Server
                                                         settingschanged = True
                                                     End If
                                                 Case "supportedCAIDs"
-                                                    Dim strTmp As String
+                                                    Dim strTmp As String = String.Empty
                                                     If s.supportedCAID.Count > 0 Then
                                                         For Each iCAID In s.supportedCAID
                                                             strTmp &= Hex(iCAID).PadLeft(4, CChar("0")) & ","
@@ -517,7 +517,7 @@ Public Class Server
                                                         settingschanged = True
                                                     End If
                                                 Case "supportedSRVIDs"
-                                                    Dim strTmp As String
+                                                    Dim strTmp As String = String.Empty
                                                     If s.supportedSRVID.Count > 0 Then
                                                         For Each iSRVID In s.supportedSRVID
                                                             strTmp &= Hex(iSRVID).PadLeft(4, CChar("0")) & ","
@@ -539,6 +539,32 @@ Public Class Server
                                                             End If
                                                         Else
                                                             s.supportedSRVID.Clear()
+                                                        End If
+                                                        settingschanged = True
+                                                    End If
+                                                Case "mapCAID"
+                                                    Dim strTmp As String = String.Empty
+                                                    If s.mapCAID.Count > 0 Then
+                                                        For Each iCAID In s.mapCAID
+                                                            strTmp &= iCAID & ","
+                                                        Next
+                                                        strTmp = strTmp.Substring(0, strTmp.Length - 1)
+                                                    End If
+                                                    If Not strTmp = HttpUtility.UrlDecode(l(1)) Then
+                                                        l(1) = HttpUtility.UrlDecode(l(1))
+                                                        If l(1).Length > 0 Then
+                                                            Dim sCAIDs() As String = l(1).Split(CChar(","))
+                                                            If sCAIDs.Length > 0 Then
+                                                                s.mapCAID.Clear()
+                                                                For i As Integer = 0 To sCAIDs.Length - 1
+                                                                    Dim iCAID As String = sCAIDs(i)
+                                                                    If Not s.mapCAID.Contains(iCAID) Then
+                                                                        s.mapCAID.Add(iCAID)
+                                                                    End If
+                                                                Next
+                                                            End If
+                                                        Else
+                                                            s.mapCAID.Clear()
                                                         End If
                                                         settingschanged = True
                                                     End If
@@ -604,6 +630,17 @@ Public Class Server
                             If s.supportedSRVID.Count > 0 Then
                                 For Each iSRVID In s.supportedSRVID
                                     strTmp &= Hex(iSRVID).PadLeft(4, CChar("0")) & ","
+                                Next
+                                sMessage.Append(strTmp.Substring(0, strTmp.Length - 1))
+                            End If
+                            sMessage.Append("'></td></tr>")
+
+                            strTmp = String.Empty
+                            sMessage.Append("<tr><td>Map CAID<td><td><input type='text' name='mapCAID' value='")
+
+                            If s.mapCAID.Count > 0 Then
+                                For Each iCAID In s.mapCAID
+                                    strTmp &= iCAID & ","
                                 Next
                                 sMessage.Append(strTmp.Substring(0, strTmp.Length - 1))
                             End If
@@ -1494,13 +1531,13 @@ Public Class Server
         sMessage.Append(ButtonBar())
         sMessage.Append("<table border=1>")
         sMessage.Append("<tr class='head'>")
-        sMessage.Append("<th>Username</th><th>Login Time</th><th>Last Request</th><th>Last Zap</th><th>Current Channel</th><th>CAID:SRVID</th><th>Response (ms)</th><th>IP</th><th>Port</th><th>AU</th>")
+        sMessage.Append("<th>Username</th><th>Login Time</th><th>Last Request</th><th>Last Zap</th><th>Current Channel</th><th>CAID:SRVID</th><th>Map CAID</th><th>Response (ms)</th><th>IP</th><th>Port</th><th>AU</th>")
         sMessage.Append("</tr>")
 
         For Each c As clsSettingsClients.clsClient In CfgClients.Clients
             If DateDiff(DateInterval.Second, c.lastRequest, Now) <= 120 Then
                 sMessage.Append("<tr>")
-                sMessage.Append("<td>" & HEX2DEC(c.Username) & "</td><td>" & c.LoginTime & "</td><td>" & c.lastRequest & "</td><td>" & c.lastChannelChange & "</td><td>" & c.lastRequestedService.Provider & " - " & c.lastRequestedService.Name & "</td><td>" & c.lastRequestedCAIDSRVID & "</td><td>" & c.lastServerReplyTime & "</td><td>" & c.SourceIp & "</td><td>" & c.SourcePort & "</td><td>" & c.AUServer & "</td>")
+                sMessage.Append("<td>" & HEX2DEC(c.Username) & "</td><td>" & c.LoginTime & "</td><td>" & c.lastRequest & "</td><td>" & c.lastChannelChange & "</td><td>" & c.lastRequestedService.Provider & " - " & c.lastRequestedService.Name & "</td><td>" & c.lastRequestedCAIDSRVID & "</td><td>" & c.CurrentCAIDMapping & "</td><td>" & c.lastServerReplyTime & "</td><td>" & c.SourceIp & "</td><td>" & c.SourcePort & "</td><td>" & c.AUServer & "</td>")
                 sMessage.Append("</tr>")
             End If
         Next

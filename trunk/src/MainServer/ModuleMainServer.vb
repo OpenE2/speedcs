@@ -155,8 +155,25 @@ Module ModuleMainServer
                 Select Case CType(plainRequest(0), CMDType)
 
                     Case CMDType.ECMRequest  'Request
+
+                        For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
+                            sClient.CurrentCAIDMapping = ""
+                            If s.mapCAID.Count > 0 Then
+                                For Each iCAID In s.mapCAID
+                                    Dim strTmp1 As UInt16 = CUShort("&H" & iCAID.Substring(0, 2))
+                                    Dim strTmp2 As UInt16 = CUShort("&H" & iCAID.Substring(2, 2))
+                                    If plainRequest(10).ToString.Equals(strTmp1.ToString) And plainRequest(11).ToString.Equals(strTmp2.ToString) Then
+                                        Debug.WriteLine("Map CAID (Source:Destination): " & iCAID)
+                                        plainRequest = mapCAID(plainRequest, iCAID) 'Modify ECM Request
+                                        sClient.CurrentCAIDMapping = iCAID
+                                        Exit For
+                                    End If
+                                Next
+                            End If
+                        Next
+
                         If sClient.logecm Then WriteECMToFile(plainRequest, sClient.Username & " Request: ")
-                        
+
                         If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
                         If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
 
@@ -412,20 +429,37 @@ Module ModuleMainServer
         Return retVal
     End Function
 
+    Private Function mapCAID(ByVal value() As Byte, ByVal CAID As String) As Byte()
+        Dim retVal() As Byte = value
 
+        Dim strTmp1 = CUShort("&H" & CAID.Substring(5, 2))
+        Dim strTmp2 = CUShort("&H" & CAID.Substring(7, 2))
+
+        retVal(10) = CByte(strTmp1)
+        retVal(11) = CByte(strTmp2)
+
+        Return retVal
+    End Function
 
 #Region "ErrorHandler"
 
     Private Sub ServerIncomingError(ByVal sender As Object, ByVal message As String)
-        Dim udpServer As clsUDPIO = TryCast(sender, clsUDPIO)
-        If Not udpServer Is Nothing Then
-            If Not udpServer.endWasRequested Then
-                Output("ServerIncomingError: " & message & " ->try restart " & udpServer.serverobject.Hostname, LogDestination.file)
-                udpServer.serverobject.deniedSRVIDCAID.Clear()
-                udpServer.OpenUDPConnection()
+        Dim udpClient As clsUDPIO = TryCast(sender, clsUDPIO)
+        If Not udpClient Is Nothing Then
+            If Not udpClient.endWasRequested Then
+                If message.Contains("Receive Thread: Socket Closed") Then
+                    Output("ServerIncomingError: " & message & " -> try restart " & udpClient.serverobject.Nickname, LogDestination.file)
+                    udpClient.serverobject.deniedSRVIDCAID.Clear()
+                    udpClient.OpenUDPConnection()
+                ElseIf message.Contains("Receive Thread Exception") Then
+                    Output("ServerIncomingError: " & message & " -> try restart " & udpClient.serverobject.Nickname, LogDestination.file)
+                    udpClient.serverobject.deniedSRVIDCAID.Clear()
+                    'StopUDP()
+                    StartUDP()
+                End If
             End If
         Else
-            Output("ClientIncomingError: " & message & " -> UDP Client destroyed " & udpServer.serverobject.Hostname, LogDestination.none)
+            Output("ClientIncomingError: " & message & " -> UDP Client destroyed " & udpClient.serverobject.Nickname, LogDestination.none)
         End If
 
     End Sub
@@ -434,12 +468,12 @@ Module ModuleMainServer
         Dim udpClient As clsUDPIO = TryCast(sender, clsUDPIO)
         If Not udpClient Is Nothing Then
             If Not udpClient.endWasRequested Then
-                Output("ClientIncomingError: " & message & " -> try restart " & udpClient.serverobject.Hostname, LogDestination.none)
+                Output("ClientIncomingError: " & message & " -> try restart " & udpClient.serverobject.Nickname, LogDestination.file)
                 udpClient.serverobject.deniedSRVIDCAID.Clear()
                 udpClient.OpenUDPConnection()
             End If
         Else
-            Output("ClientIncomingError: " & message & " -> UDP Client destroyed " & udpClient.serverobject.Hostname, LogDestination.none)
+            Output("ClientIncomingError: " & message & " -> UDP Client destroyed " & udpClient.serverobject.Nickname, LogDestination.none)
         End If
 
     End Sub

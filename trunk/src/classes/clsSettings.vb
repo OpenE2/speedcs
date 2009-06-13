@@ -218,6 +218,7 @@ End Class
         <XmlIgnore()> Public lastChannelChange As Date
         <XmlIgnore()> Public LoginTime As Date
         <XmlIgnore()> Public lastServerReplyTime As Long
+        <XmlIgnore()> Public CurrentCAIDMapping As String = ""
 
         Private _ucrc As UInteger
         Public ReadOnly Property ucrc() As UInteger
@@ -424,6 +425,7 @@ End Class
 
         Public supportedCAID As New List(Of UInt16) 'Supported over Settings
         Public supportedSRVID As New List(Of UInt16) 'Supported over Settings
+        Public mapCAID As New List(Of String) 'Supported over Settings
 
         <XmlIgnore()> Public deniedSRVIDCAID As New List(Of UInt32) 'Rejected over Server behavior
 
