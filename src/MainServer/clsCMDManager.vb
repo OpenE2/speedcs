@@ -690,5 +690,4 @@ Public Class clsCMDManager
         'End Try
     End Sub
 
-
 End Class
