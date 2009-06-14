@@ -157,7 +157,6 @@ Module ModuleMainServer
                     Case CMDType.ECMRequest  'Request
 
                         For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
-                            sClient.CurrentCAIDMapping = ""
                             If s.mapCAID.Count > 0 Then
                                 For Each iCAID In s.mapCAID
                                     Dim strTmp1 As UInt16 = CUShort("&H" & iCAID.Substring(0, 2))
@@ -167,6 +166,8 @@ Module ModuleMainServer
                                         plainRequest = mapCAID(plainRequest, iCAID) 'Modify ECM Request
                                         sClient.CurrentCAIDMapping = iCAID
                                         Exit For
+                                    Else
+                                        sClient.CurrentCAIDMapping = ""
                                     End If
                                 Next
                             End If

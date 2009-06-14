@@ -215,8 +215,8 @@ End Class
         <XmlIgnore()> Public AUSerial As UInt32
         <XmlIgnore()> Public lastRequestedService As clsService
         <XmlIgnore()> Public lastRequestedCAIDSRVID As String = ""
-        <XmlIgnore()> Public lastChannelChange As Date
-        <XmlIgnore()> Public LoginTime As Date
+        <XmlIgnore()> Public lastChannelChange As Date = Now
+        <XmlIgnore()> Public LoginTime As Date = Now
         <XmlIgnore()> Public lastServerReplyTime As Long
         <XmlIgnore()> Public CurrentCAIDMapping As String = ""
 
