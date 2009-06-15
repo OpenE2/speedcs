@@ -603,20 +603,12 @@ Public Class clsCMDManager
                         canceled = True
                         'consoleOut &= "CAID"
                         consoleOutReason = " Denied in Server Config!"
-                        'clear client's requests
-                        request.UCRC.Clear()
-                        'Delete this request
-                        CMD0Requests.Remove(request.Key)
                     End If
 
                     If Not .supportedSRVID.Contains(request.iSRVID) And Not .supportedSRVID.Count = 0 Then 'Srvid not Supported by Serversettings and Srvid List not empty
                         canceled = True
                         'consoleOut &= "SRVID"
                         consoleOutReason = " Denied in Server Config!"
-                        'clear client's requests
-                        request.UCRC.Clear()
-                        'Delete this request
-                        CMD0Requests.Remove(request.Key)
                     End If
 
                     If Not .SendECMs Then 'Not allowed send Request by Serversettings
