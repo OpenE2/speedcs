@@ -484,9 +484,13 @@ Public Class clsCMDManager
                     'Debug.WriteLine("sent to: " & c.Username)
                 Next
                 'clear client's requests
-                request.UCRC.Clear()
+                SyncLock request
+                    request.UCRC.Clear()
+                End SyncLock
                 'Delete this request
-                CMD0Requests.Remove(request.Key)
+                SyncLock CMD0Requests
+                    CMD0Requests.Remove(request.Key)
+                End SyncLock
             Else
                 Debug.WriteLine("No Request found")
             End If

@@ -156,38 +156,74 @@ Module ModuleMainServer
 
                     Case CMDType.ECMRequest  'Request
 
+                        Dim requestedCAID As String = String.Empty
+                        Dim requestedSRVID As String = String.Empty
+                        Dim DoAnyway As Boolean = False
+                        Dim RequestValid As Boolean = False
+
+                        requestedCAID = CStr(Hex(plainRequest(10))) & CStr(Hex(plainRequest(11))).PadLeft(2, CChar("0"))
+                        requestedSRVID = CStr(Hex(plainRequest(8))) & CStr(Hex(plainRequest(9))).PadLeft(2, CChar("0"))
+                        requestedCAID = CStr(CUShort("&H" & requestedCAID))
+                        requestedSRVID = CStr(CUShort("&H" & requestedSRVID))
+
                         For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
-                            If s.mapCAID.Count > 0 Then
-                                For Each iCAID In s.mapCAID
-                                    Dim strTmp1 As UInt16 = CUShort("&H" & iCAID.Substring(0, 2))
-                                    Dim strTmp2 As UInt16 = CUShort("&H" & iCAID.Substring(2, 2))
-                                    If plainRequest(10).ToString.Equals(strTmp1.ToString) And plainRequest(11).ToString.Equals(strTmp2.ToString) Then
-                                        Debug.WriteLine("Map CAID (Source:Destination): " & iCAID)
-                                        plainRequest = mapCAID(plainRequest, iCAID) 'Modify ECM Request
-                                        sClient.CurrentCAIDMapping = iCAID
-                                        Exit For
+                            If s.supportedCAID.Count > 0 Then
+                                If s.supportedCAID.Contains(CUShort(requestedCAID)) Then
+                                    If s.supportedSRVID.Count > 0 Then
+                                        If s.supportedSRVID.Contains(CUShort(requestedSRVID)) Then
+                                            RequestValid = True
+                                            DoAnyway = True
+                                        End If
                                     Else
-                                        sClient.CurrentCAIDMapping = ""
+                                        'if server has no supportedSRVID´s all requests must be sent
+                                        DoAnyway = True
                                     End If
-                                Next
+                                End If
+                            Else
+                                'if server has no supportedCAID´s all requests must be sent
+                                DoAnyway = True
                             End If
                         Next
 
-                        If sClient.logecm Then WriteECMToFile(plainRequest, sClient.Username & " Request: ")
+                        If RequestValid Or DoAnyway Then
+                            For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
+                                If s.mapCAID.Count > 0 Then
+                                    For Each iCAID In s.mapCAID
+                                        Dim strTmp1 As UInt16 = CUShort("&H" & iCAID.Substring(0, 2))
+                                        Dim strTmp2 As UInt16 = CUShort("&H" & iCAID.Substring(2, 2))
+                                        If plainRequest(10).ToString.Equals(strTmp1.ToString) And plainRequest(11).ToString.Equals(strTmp2.ToString) Then
+                                            Debug.WriteLine("Map CAID (Source:Destination): " & iCAID)
+                                            plainRequest = mapCAID(plainRequest, iCAID) 'Modify ECM Request
+                                            sClient.CurrentCAIDMapping = iCAID
+                                            Exit For
+                                        Else
+                                            sClient.CurrentCAIDMapping = String.Empty
+                                        End If
+                                    Next
+                                Else
+                                    sClient.CurrentCAIDMapping = String.Empty
+                                End If
+                            Next
 
-                        If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
-                        If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
+                            If sClient.logecm Then WriteECMToFile(plainRequest, sClient.Username & " Request: ")
 
-                        If DateDiff(DateInterval.Second, sClient.lastRequest, Now) > 120 Then sClient.LoginTime = Now
+                            If Not sClient.SourceIp = message.sourceIP Then sClient.SourceIp = message.sourceIP
+                            If Not sClient.SourcePort = message.sourcePort Then sClient.SourcePort = CUShort(message.sourcePort)
 
-                        sClient.lastRequest = Now
-                        'Cache.Requests.Add(ecm)
-                        'strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
-                        If Not emmSender.Enabled Then emmSender.Start()
+                            If DateDiff(DateInterval.Second, sClient.lastRequest, Now) > 120 Then sClient.LoginTime = Now
 
-                        CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
-                        Debug.WriteLine("Requests in Cachemanager: " & CacheManager.CMD0Requests.Count)
-                        Debug.WriteLine("Requested Service Name: " & sClient.lastRequestedService.Name)
+                            sClient.lastRequest = Now
+                            'Cache.Requests.Add(ecm)
+                            'strClientResult = "Request: '" & sClient.Username & "' [" & ecm.ServiceName & "]"
+                            If Not emmSender.Enabled Then emmSender.Start()
+
+                            CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
+                            Debug.WriteLine("Requests in Cachemanager: " & CacheManager.CMD0Requests.Count)
+                            Debug.WriteLine("Requested Service Name: " & sClient.lastRequestedService.Name)
+                        Else
+                            logColor = ConsoleColor.Red
+                            strClientResult = sClient.Username & " " & Hex(requestedCAID).PadLeft(4, CChar("0")) & ":" & Hex(requestedSRVID).PadLeft(4, CChar("0")) & " denied in Server Config!"
+                        End If
 
                     Case CMDType.sCSRequest 'Special sCS Request
                         CacheManager.CMD0Requests.Add(plainRequest, message.ucrcInt, message.sourceIP, message.sourcePort)
@@ -439,6 +475,18 @@ Module ModuleMainServer
         retVal(10) = CByte(strTmp1)
         retVal(11) = CByte(strTmp2)
 
+        If CAID.Length > 9 Then
+            Dim strTmp3 = CUShort("&H" & CAID.Substring(10, 2))
+            Dim strTmp4 = CUShort("&H" & CAID.Substring(12, 2))
+            Dim strTmp5 = CUShort("&H" & CAID.Substring(14, 2))
+            Dim strTmp6 = CUShort("&H" & CAID.Substring(16, 2))
+
+            retVal(12) = CByte(strTmp3)
+            retVal(13) = CByte(strTmp4)
+            retVal(14) = CByte(strTmp5)
+            retVal(15) = CByte(strTmp6)
+        End If
+
         Return retVal
     End Function
 
@@ -455,7 +503,7 @@ Module ModuleMainServer
                 ElseIf message.Contains("Receive Thread Exception") Then
                     Output("ServerIncomingError: " & message & " -> try restart " & udpClient.serverobject.Nickname, LogDestination.file)
                     udpClient.serverobject.deniedSRVIDCAID.Clear()
-                    'StopUDP()
+                    StopUDP()
                     StartUDP()
                 End If
             End If
