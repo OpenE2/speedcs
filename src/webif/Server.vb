@@ -404,14 +404,14 @@ Public Class Server
                     Dim port As Integer = 0
                     For Each l As String In lines
                         If Mid(LCase(l), 1, 3).Equals("get") Or Mid(LCase(l), 1, 4).Equals("post") Then
-                            hostname = GetValueFromUrl(l, "hostname")
+                            nickname = GetValueFromUrl(l, "nickname")
                             port = CInt(GetValueFromUrl(l, "port"))
                             Exit For
                         End If
                     Next
                     If Mid(LCase(sbuffer.ToString), 1, 4).Equals("post") Then
                         For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
-                            If s.Hostname.Equals(hostname) And s.Port.Equals(port) Then
+                            If s.Nickname.Equals(nickname) And s.Port.Equals(port) Then
                                 'Speichern der neuen Einstellungen
                                 Dim tmp() As String = Split(sbuffer.ToString, vbCrLf & vbCrLf)
                                 If tmp.Length > 1 Then
@@ -594,8 +594,8 @@ Public Class Server
 
                     sMessage.Append("<table border=1>")
                     For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
-                        If s.Hostname.Equals(hostname) And s.Port.Equals(port) Then
-                            sMessage.Append("<form action='server.html?hostname=" & hostname & "&port=" & port & "' method='post'>")
+                        If s.Nickname.Equals(nickname) And s.Port.Equals(port) Then
+                            sMessage.Append("<form action='server.html?nickname=" & nickname & "&port=" & port & "' method='post'>")
                             sMessage.Append("<tr><td>Active<td><td>")
                             sMessage.Append("<select name='active'>")
                             sMessage.Append("<option ")
@@ -1569,11 +1569,19 @@ Public Class Server
         sMessage.Append("<a href='servers.html?add=true'>Add Server</a>")
         sMessage.Append("<table border=1>")
         sMessage.Append("<tr>")
-        sMessage.Append("<th>Active</th><th>Nickname</th><th>Hostname/IP</th><th>Port</th><th>Username</th><th>UserCRC</th>")
+        sMessage.Append("<th>Active</th><th>Nickname</th><th>Hostname/IP</th><th>Port</th><th>Username</th><th>UserCRC</th><th>Logging</th>")
         sMessage.Append("</tr>")
         For Each s As clsSettingsCardServers.clsCardServer In CfgCardServers.CardServers
             sMessage.Append("<tr>")
-            sMessage.Append("<td>" & s.Active & "</td><td>" & HEX2DEC(s.Nickname) & "</td><td>" & s.Hostname & "</td><td>" & s.Port & "</td><td>" & HEX2DEC(s.Username) & "</td><td>" & s.UCRC.ToString("X6") & "</td><td><a href='server.html?hostname=" & s.Hostname & "&port=" & s.Port & "'>Edit</a></td>")
+            sMessage.Append("<td>" & s.Active & "</td><td>" & HEX2DEC(s.Nickname) & "</td><td>" & s.Hostname & "</td><td>" & s.Port & "</td><td>" & HEX2DEC(s.Username) & "</td><td>" & s.UCRC.ToString("X6"))
+
+            If s.LogECM Or s.LogEMM Then
+                sMessage.Append("<th>Enabed</th>")
+            ElseIf Not s.LogECM Or s.LogEMM Then
+                sMessage.Append("<td>Disabled</td>")
+            End If
+
+            sMessage.Append("</td><td><a href='server.html?nickname=" & s.Nickname & "&port=" & s.Port & "'>Edit</a></td>")
             sMessage.Append("</tr>")
         Next
         sMessage.Append("</table>")
